@@ -6,6 +6,8 @@ import RoleBasedRoute from '../core/guards/RoleBasedRoute';
 import ProtectedRoute from '../core/guards/ProtectedRoute';
 import ProfilePage from '../pages/ProfilePage';
 import EventTypePage from '../pages/EventTypePage';
+import SearchEventPage from '../pages/SearchEventPage'; // เพิ่มการนำเข้า SearchEventPage
+import EventDetailPage from '../pages/EventDetailPage';
 
 const HomePage = React.lazy(() => import('../pages/HomePage'));
 const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
@@ -67,6 +69,16 @@ const routes: RouteObject[] = [
   {
     path: '/events/:type',
     element: <EventTypePage />,
+  },
+  // หน้าแสดงรายละเอียดกิจกรรม
+  {
+    path: '/events/detail/:id',
+    element: <EventDetailPage />,
+  },
+  // หน้าค้นหากิจกรรม
+  {
+    path: '/search',
+    element: <SearchEventPage />,
   },
   // แดชบอร์ดแอดมิน - เข้าถึงได้เฉพาะแอดมิน
   {
