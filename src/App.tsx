@@ -2,28 +2,69 @@ import { BrowserRouter, useLocation, useRoutes } from 'react-router-dom';
 import routes from './routes';
 import { AuthStoreProvider } from './stores/auth.store';
 import HomePage from './pages/HomePage';
-import { Suspense } from 'react';
-import Navbar from './components/Navbar';
+import { Suspense, useEffect, useState } from 'react';
+import Sidebar from './components/Sidebar';
 import { ThemeProvider, useTheme } from './stores/theme.store';
 
 function AppRoutes() {
   const element = useRoutes(routes);
   const location = useLocation();
   const { theme } = useTheme();
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSearchBar, setShowSearchBar] = useState(true);
 
-  // ซ่อน Navbar ในหน้า 404
+  useEffect(() => {
+    // กำหนดเส้นทางที่ต้องการซ่อน Sidebar
+    const hideSidebarPaths = ['/login', '/register'];
+    
+    // เส้นทางที่ต้องการแสดง SearchBar
+    const searchBarPaths = ['/'];
+    
+    // ตรวจสอบว่าเส้นทางปัจจุบันอยู่ในรายการที่ต้องซ่อน Sidebar หรือไม่
+    const shouldHideSidebar = hideSidebarPaths.includes(location.pathname);
+    
+    // ตรวจสอบว่าเส้นทางปัจจุบันอยู่ในรายการที่ต้องแสดง SearchBar หรือไม่
+    const shouldShowSearchBar = searchBarPaths.includes(location.pathname);
+    
+    // ตรวจสอบว่าเป็นหน้า 404 หรือไม่
     const is404Page = !routes.some(route => 
-    route.path === location.pathname || 
-    (route.path?.includes(':') && location.pathname.match(route.path.replace(/:\w+/g, '[^/]+'))));
-  
-  const showNavbar = !is404Page;
+      route.path === location.pathname || 
+      (route.path?.includes(':') && location.pathname.match(route.path.replace(/:\w+/g, '[^/]+')))
+    );
+    
+    // ซ่อน Sidebar ในหน้า login, register หรือหน้า 404
+    setShowSidebar(!shouldHideSidebar && !is404Page);
+    
+    // แสดง SearchBar เฉพาะในหน้าที่กำหนด
+    setShowSearchBar(shouldShowSearchBar);
+    
+    // เพิ่ม class พิเศษสำหรับหน้า login และ register
+    if (hideSidebarPaths.includes(location.pathname)) {
+      document.body.classList.add('login-page');
+    } else {
+      document.body.classList.remove('login-page');
+    }
+  }, [location.pathname]);
   
   return (
-    <div className="min-h-screen bg-base-100 text-base-content" data-theme={theme}>
-      {showNavbar && <Navbar />}
-      <Suspense fallback={<HomePage />}>
-        {element}
-      </Suspense>
+    <div 
+      className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`} 
+      data-theme={theme}
+    >
+      <div className="flex h-screen">
+        {showSidebar && <Sidebar />}
+        <div className={`flex-1 overflow-y-auto ${showSidebar ? 'pl-64' : ''}`}>
+          <Suspense fallback={
+            <div className={`flex items-center justify-center h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
+              <div className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]`} role="status">
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+              </div>
+            </div>
+          }>
+            {element}
+          </Suspense>
+        </div>
+      </div>
     </div>
   );
 }
