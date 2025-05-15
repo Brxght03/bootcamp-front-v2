@@ -54,7 +54,7 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
   };
 
   return (
-    <div className={`${className} sticky top-4 z-10 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className={`${className} sticky top-4 z-10 `}>
       <div className="mx-auto max-w-4xl">
         <div className="relative">
           <div className="flex rounded-md shadow-sm">

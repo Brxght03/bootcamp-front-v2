@@ -11,6 +11,7 @@ interface AuthStateProps {
   userId: string | null;
   login: (userId?: string, role?: UserRole) => void;
   logout: () => void;
+  checkAuth: () => boolean; // เพิ่มฟังก์ชันตรวจสอบสถานะการล็อกอิน
 }
 
 export const AuthStore = createContext<AuthStateProps | undefined>(undefined);
@@ -20,20 +21,33 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // ฟังก์ชันตรวจสอบสถานะการล็อกอินจาก localStorage
+  const checkAuth = (): boolean => {
+    try {
+      const storedAuth = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedAuth) {
+        const authData = JSON.parse(storedAuth);
+        
+        // ตรวจสอบว่าข้อมูลถูกต้องหรือไม่
+        if (authData && (authData.userId || authData.role)) {
+          setIsAuthenticated(true);
+          setUserRole(authData.role || 'student');
+          setUserId(authData.userId || null);
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      // หากการแปลง JSON ล้มเหลว ให้ลบข้อมูลใน localStorage
+      console.error("Error checking auth state:", e);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // ดึงข้อมูลการล็อกอินจาก localStorage เมื่อโหลดแอป
-    const storedAuth = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedAuth) {
-      try {
-        const authData = JSON.parse(storedAuth);
-        setIsAuthenticated(true);
-        setUserRole(authData.role || 'student');
-        setUserId(authData.userId || null);
-      } catch (e) {
-        // หากการแปลง JSON ล้มเหลว ให้ลบข้อมูลใน localStorage
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      }
-    }
+    checkAuth();
   }, []);
 
   const login = (userId = '', role: UserRole = 'student') => {
@@ -54,7 +68,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthStore.Provider value={{ isAuthenticated, userRole, userId, login, logout }}>
+    <AuthStore.Provider value={{ isAuthenticated, userRole, userId, login, logout, checkAuth }}>
       {children}
     </AuthStore.Provider>
   );

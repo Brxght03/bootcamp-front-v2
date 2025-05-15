@@ -3,8 +3,13 @@ import React from 'react';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import RoleBasedRoute from '../core/guards/RoleBasedRoute';
+import ProtectedRoute from '../core/guards/ProtectedRoute';
+import ProfilePage from '../pages/ProfilePage';
+import EventTypePage from '../pages/EventTypePage';
 
 const HomePage = React.lazy(() => import('../pages/HomePage'));
+const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
+const HistoryPage = React.lazy(() => import('../pages/HistoryPage'));
 const NotFoundPage = React.lazy(() => import('../pages/NotFound404.page'));
 
 // หน้าเหล่านี้จะถูกสร้างในอนาคต (สร้างไว้เป็นตัวอย่าง)
@@ -30,6 +35,38 @@ const routes: RouteObject[] = [
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  // หน้ากิจกรรมของฉัน - ต้องล็อกอินก่อน
+  {
+    path: '/activities',
+    element: (
+      <ProtectedRoute>
+        <ActivitiesPage />
+      </ProtectedRoute>
+    ),
+  },
+  // หน้าประวัติกิจกรรม - ต้องล็อกอินก่อน
+  {
+    path: '/history',
+    element: (
+      <ProtectedRoute>
+        <HistoryPage />
+      </ProtectedRoute>
+    ),
+  },
+   // หน้าโปรไฟล์ - ต้องล็อกอินแล้วเท่านั้น
+   {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
+  },
+  // หน้าประเภทกิจกรรม
+  {
+    path: '/events/:type',
+    element: <EventTypePage />,
   },
   // แดชบอร์ดแอดมิน - เข้าถึงได้เฉพาะแอดมิน
   {
