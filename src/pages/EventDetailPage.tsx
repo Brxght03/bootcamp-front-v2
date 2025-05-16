@@ -255,8 +255,9 @@ function EventDetailPage() {
                     </div>
                   </div>
                 </CardItem>
-                
-                {/* แสดงข้อมูลเพิ่มเติมสำหรับผู้สร้างกิจกรรม */}
+
+                {/*
+                //แสดงข้อมูลเพิ่มเติมสำหรับผู้สร้างกิจกรรม 
                 {isEventCreator() && (
                   <CardItem translateZ="50" className="w-full mt-4">
                     <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -267,6 +268,8 @@ function EventDetailPage() {
                     </div>
                   </CardItem>
                 )}
+                */}
+
               </CardBody>
             </CardContainer>
           </div>
@@ -366,33 +369,14 @@ function EventDetailPage() {
             
             {/* แสดงข้อความสำหรับผู้สร้างกิจกรรม */}
             {isEventCreator() && (
-              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-md">
-                <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                  คุณเป็นผู้สร้างกิจกรรมนี้ ไม่สามารถสมัครเข้าร่วมได้
+              <div className="mt-4 p-3 bg-blue-100  dark:bg-blue-900 rounded-md">
+                <p className={`text-sm text-center text-blue-700 ${theme === 'dark' ? 'text-blue-700' : 'text-blue-300'}`}>
+                  คุณเป็นผู้สร้างกิจกรรมนี้ 
                 </p>
               </div>
             )}
             
-            {/* แสดงสถานะการอนุมัติสำหรับผู้มีสิทธิ์ */}
-            {(userRole === 'staff' || userRole === 'admin') && (
-              <div className={`mt-4 p-3 rounded-md ${
-                event.approvalStatus === 'อนุมัติ'
-                  ? 'bg-green-100 dark:bg-green-900'
-                  : event.approvalStatus === 'รออนุมัติ'
-                    ? 'bg-yellow-100 dark:bg-yellow-900'
-                    : 'bg-red-100 dark:bg-red-900'
-              }`}>
-                <p className={`text-sm text-center ${
-                  event.approvalStatus === 'อนุมัติ'
-                    ? theme === 'dark' ? 'text-green-300' : 'text-green-700'
-                    : event.approvalStatus === 'รออนุมัติ'
-                      ? theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'
-                      : theme === 'dark' ? 'text-red-300' : 'text-red-700'
-                }`}>
-                  สถานะการอนุมัติ: {event.approvalStatus}
-                </p>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
