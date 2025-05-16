@@ -14,7 +14,6 @@ interface ParticipantItem {
   attendanceStatus: "มาเข้าร่วม" | "ไม่ได้เข้าร่วม" | "รอเข้าร่วม";
 }
 
-
 // ประเภทข้อมูลสำหรับกิจกรรม
 interface ActivityDetail {
   id: string;
@@ -37,7 +36,7 @@ type SortField =
   | "attendanceStatus";
 type SortOrder = "asc" | "desc";
 
-function ActivityParticipantsPage() {
+function ActivityParticipationApprovalPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -85,6 +84,7 @@ function ActivityParticipantsPage() {
       maxParticipants: 30,
     };
 
+    
     
 
     setActivityDetail(mockActivityDetail);
@@ -317,7 +317,22 @@ function ActivityParticipantsPage() {
             </div>
           </div>
 
-          
+          <div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={`w-full px-4 py-2 rounded-md ${
+                theme === "dark"
+                  ? "bg-gray-800 border-gray-700 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              } border`}
+            >
+              <option value="">ทุกสถานะ</option>
+              <option value="มาเข้าร่วม">มาเข้าร่วม</option>
+              <option value="ไม่ได้เข้าร่วม">ไม่ได้เข้าร่วม</option>
+              <option value="รอเข้าร่วม">รอเข้าร่วม</option>
+            </select>
+          </div>
         </div>
 
         {/* ตารางแสดงรายชื่อผู้เข้าร่วม */}
@@ -419,7 +434,12 @@ function ActivityParticipantsPage() {
                     )}
                   </div>
                 </th>
-                
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-center text-sm font-medium"
+                >
+                  การจัดการ
+                </th>
               </tr>
             </thead>
             <tbody
@@ -476,7 +496,71 @@ function ActivityParticipantsPage() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        
+                        {/* ปุ่มบันทึกเข้าร่วม */}
+                        <button
+                          onClick={() =>
+                            handleAttendanceChange(participant.id, "มาเข้าร่วม")
+                          }
+                          disabled={
+                            participant.attendanceStatus === "มาเข้าร่วม"
+                          }
+                          className={`p-1 rounded-full ${
+                            participant.attendanceStatus === "มาเข้าร่วม"
+                              ? "opacity-50 cursor-not-allowed"
+                              : theme === "dark"
+                              ? "text-green-400 hover:bg-gray-700"
+                              : "text-green-600 hover:bg-gray-200"
+                          }`}
+                          title="บันทึกเข้าร่วม"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* ปุ่มรีเซ็ตสถานะ */}
+                        <button
+                          onClick={() =>
+                            handleAttendanceChange(participant.id, "รอเข้าร่วม")
+                          }
+                          disabled={
+                            participant.attendanceStatus === "รอเข้าร่วม"
+                          }
+                          className={`p-1 rounded-full ${
+                            participant.attendanceStatus === "รอเข้าร่วม"
+                              ? "opacity-50 cursor-not-allowed"
+                              : theme === "dark"
+                              ? "text-yellow-400 hover:bg-gray-700"
+                              : "text-yellow-600 hover:bg-gray-200"
+                          }`}
+                          title="รีเซ็ตสถานะ"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -606,7 +690,7 @@ function ActivityParticipantsPage() {
   );
 }
 
-export default ActivityParticipantsPage;
+export default ActivityParticipationApprovalPage;
 
 {
   /* ปุ่มบันทึกไม่เข้าร่วม 
