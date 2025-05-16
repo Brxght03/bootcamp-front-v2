@@ -4,6 +4,7 @@ import RoleBasedRoute from '../core/guards/RoleBasedRoute';
 import StaffDashboardPage from '../pages/StaffDashboardPage';
 import CreateEventPage from '../pages/CreateEventPage';
 import StaffActivitiesPage from '../pages/StaffActivitiesPage';
+import EditEventPage from '../pages/EditEventPage';
 
 // Placeholder component for the Approval Requests page
 const ApprovalRequestsPage = () => <div>Approval Requests Page - coming soon</div>;
@@ -47,7 +48,7 @@ const staffRoutes: RouteObject[] = [
     path: '/edit-event/:id',
     element: (
       <RoleBasedRoute allowedRoles={['staff']}>
-        <div>Edit Event Page - coming soon</div>
+        <EditEventPage />
       </RoleBasedRoute>
     ),
   },
