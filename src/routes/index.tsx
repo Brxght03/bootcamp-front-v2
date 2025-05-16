@@ -9,15 +9,14 @@ import EventTypePage from '../pages/EventTypePage';
 import SearchEventPage from '../pages/SearchEventPage';
 import EventDetailPage from '../pages/EventDetailPage';
 import StaffDashboardPage from '../pages/StaffDashboardPage';
+import AdminDashboardPage from '../pages/AdminDashboardPage';
 import staffRoutes from './staff.routes';
+import adminRoutes from './admin.routes';
 
 const HomePage = React.lazy(() => import('../pages/HomePage'));
 const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
 const HistoryPage = React.lazy(() => import('../pages/HistoryPage'));
 const NotFoundPage = React.lazy(() => import('../pages/NotFound404.page'));
-
-// หน้าเหล่านี้จะถูกสร้างในอนาคต (สร้างไว้เป็นตัวอย่าง)
-const AdminDashboard = React.lazy(() => import('../pages/HomePage')); // Placeholder
 
 /**
  * กำหนดเส้นทางทั้งหมดในแอปพลิเคชัน
@@ -39,22 +38,22 @@ const routes: RouteObject[] = [
     path: '/register',
     element: <RegisterPage />,
   },
-  // หน้ากิจกรรมของฉัน - ต้องล็อกอินก่อน
+  // หน้ากิจกรรมของฉัน - ต้องล็อกอินก่อน และไม่ใช่แอดมิน
   {
     path: '/activities',
     element: (
-      <ProtectedRoute>
+      <RoleBasedRoute allowedRoles={['student', 'staff']}>
         <ActivitiesPage />
-      </ProtectedRoute>
+      </RoleBasedRoute>
     ),
   },
-  // หน้าประวัติกิจกรรม - ต้องล็อกอินก่อน
+  // หน้าประวัติกิจกรรม - ต้องล็อกอินก่อน และไม่ใช่แอดมิน
   {
     path: '/history',
     element: (
-      <ProtectedRoute>
+      <RoleBasedRoute allowedRoles={['student', 'staff']}>
         <HistoryPage />
-      </ProtectedRoute>
+      </RoleBasedRoute>
     ),
   },
    // หน้าโปรไฟล์ - ต้องล็อกอินแล้วเท่านั้น
@@ -95,12 +94,14 @@ const routes: RouteObject[] = [
     path: '/admin',
     element: (
       <RoleBasedRoute allowedRoles={['admin']}>
-        <AdminDashboard />
+        <AdminDashboardPage />
       </RoleBasedRoute>
     ),
   },
   // นำเข้าเส้นทางย่อยสำหรับเจ้าหน้าที่ (ยกเว้น staff-dashboard ที่กำหนดด้านบนแล้ว)
   ...staffRoutes.filter(route => route.path !== '/staff-dashboard'),
+  // นำเข้าเส้นทางย่อยสำหรับแอดมิน (ยกเว้น admin ที่กำหนดด้านบนแล้ว)
+  ...adminRoutes.filter(route => route.path !== '/admin'),
   // หน้า 404 สำหรับเส้นทางที่ไม่มีอยู่
   {
     path: '*',

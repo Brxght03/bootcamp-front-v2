@@ -14,7 +14,6 @@ interface ParticipantItem {
   attendanceStatus: "มาเข้าร่วม" | "ไม่ได้เข้าร่วม" | "รอเข้าร่วม";
 }
 
-
 // ประเภทข้อมูลสำหรับกิจกรรม
 interface ActivityDetail {
   id: string;
@@ -85,8 +84,6 @@ function ActivityParticipantsPage() {
       maxParticipants: 30,
     };
 
-    
-
     setActivityDetail(mockActivityDetail);
     setParticipants(mockParticipants);
     setLoading(false);
@@ -118,7 +115,7 @@ function ActivityParticipantsPage() {
     );
   };
 
-  // กรองและเรียงข้อมูล
+  // แก้ไขส่วนของการกรองข้อมูลก่อนแสดงผล
   const filteredAndSortedParticipants = participants
     .filter(
       (participant) =>
@@ -128,10 +125,10 @@ function ActivityParticipantsPage() {
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           participant.major.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (filterStatus === "" || participant.attendanceStatus === filterStatus)
+        participant.attendanceStatus === "มาเข้าร่วม" // แก้ตรงนี้ให้กรองเฉพาะสถานะ "มาเข้าร่วม"
     )
     .sort((a, b) => {
-      // เรียงตามฟิลด์ที่เลือก
+      // โค้ดการเรียงลำดับยังคงเหมือนเดิม...
       const compareA = String(a[sortField]).toLowerCase();
       const compareB = String(b[sortField]).toLowerCase();
 
@@ -143,7 +140,6 @@ function ActivityParticipantsPage() {
       }
       return 0;
     });
-
   // คำนวณหน้าปัจจุบัน
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -316,8 +312,6 @@ function ActivityParticipantsPage() {
               </svg>
             </div>
           </div>
-
-          
         </div>
 
         {/* ตารางแสดงรายชื่อผู้เข้าร่วม */}
@@ -407,19 +401,10 @@ function ActivityParticipantsPage() {
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer"
-                  onClick={() => sortParticipants("attendanceStatus")}
+                  className="px-4 py-3 text-left text-sm font-medium"
                 >
-                  <div className="flex items-center">
-                    สถานะการเข้าร่วม
-                    {sortField === "attendanceStatus" && (
-                      <span className="ml-1">
-                        {sortOrder === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
-                  </div>
+                  <div className="flex items-center">สถานะการเข้าร่วม</div>
                 </th>
-                
               </tr>
             </thead>
             <tbody
@@ -474,11 +459,7 @@ function ActivityParticipantsPage() {
                         {participant.attendanceStatus}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        
-                      </div>
-                    </td>
+                   
                   </tr>
                 ))
               ) : (
@@ -598,11 +579,8 @@ function ActivityParticipantsPage() {
             </nav>
           </div>
         )}
-        
-       
-        </div>
       </div>
-  
+    </div>
   );
 }
 

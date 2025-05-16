@@ -6,9 +6,9 @@ import CreateEventPage from '../pages/CreateEventPage';
 import StaffActivitiesPage from '../pages/StaffActivitiesPage';
 import EditEventPage from '../pages/EditEventPage';
 import ActivityParticipantsPage from '../pages/ActivityParticipantsPage';
+import ApprovalRequestsPage from '../pages/ApprovalRequestsPage';
 
-// Placeholder component for the Approval Requests page
-const ApprovalRequestsPage = () => <div>Approval Requests Page - coming soon</div>;
+
 
 /**
  * Staff-specific routes

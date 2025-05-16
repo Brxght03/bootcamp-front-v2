@@ -8,6 +8,8 @@ interface ParticipantItem {
   id: string;
   name: string;
   studentId: string;
+  eventType: "อบรม" | "อาสา" | "ช่วยงาน";
+  eventTitle: string;
   faculty: string;
   major: string;
   registrationDate: string;
@@ -33,10 +35,12 @@ type SortField =
   | "faculty"
   | "major"
   | "registrationDate"
-  | "attendanceStatus";
+  | "attendanceStatus"
+  | "eventTitle"
+  | "eventType";  
 type SortOrder = "asc" | "desc";
 
-function ActivityParticipationApprovalPage() {
+function ApprovalRequestsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -51,7 +55,7 @@ function ActivityParticipationApprovalPage() {
   const [itemsPerPage] = useState(10);
   const [sortField, setSortField] = useState<SortField>("registrationDate");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
 
   // โหลดข้อมูลกิจกรรมและผู้เข้าร่วม
   useEffect(() => {
@@ -84,13 +88,30 @@ function ActivityParticipationApprovalPage() {
       maxParticipants: 30,
     };
 
-    
-    
-
     setActivityDetail(mockActivityDetail);
     setParticipants(mockParticipants);
     setLoading(false);
   }, [id]);
+
+  //สีประเภทกิจกรรม
+  const eventTypeColor = (type: string) => {
+    switch (type) {
+      case "อบรม":
+        return theme === "dark"
+          ? "bg-blue-600 text-white"
+          : "bg-blue-600 text-white";
+      case "อาสา":
+        return theme === "dark"
+          ? "bg-green-600 text-white"
+          : "bg-green-600 text-white";
+      case "ช่วยงาน":
+        return theme === "dark"
+          ? "bg-purple-600 text-white"
+          : "bg-purple-600 text-white";
+      default:
+        return "";
+    }
+  };
 
   // ฟังก์ชันเรียงข้อมูล
   const sortParticipants = (field: SortField) => {
@@ -109,16 +130,25 @@ function ActivityParticipationApprovalPage() {
     participantId: string,
     status: "มาเข้าร่วม" | "ไม่ได้เข้าร่วม"
   ) => {
-    setParticipants(
-      participants.map((participant) =>
-        participant.id === participantId
-          ? { ...participant, attendanceStatus: status }
-          : participant
-      )
+    // อัพเดทสถานะของผู้เข้าร่วม
+    const updatedParticipants = participants.map((participant) =>
+      participant.id === participantId
+        ? { ...participant, attendanceStatus: status }
+        : participant
     );
+
+    // หลังจากอัพเดทสถานะ ให้นำผู้เข้าร่วมที่มีสถานะ "รอเข้าร่วม" มาแสดงเท่านั้น
+    setParticipants(updatedParticipants);
+
+    // แจ้งเตือนว่าได้ดำเนินการเรียบร้อยแล้ว
+    if (status === "มาเข้าร่วม") {
+      alert(`อนุมัติการเข้าร่วมกิจกรรมเรียบร้อยแล้ว`);
+    } else {
+      alert(`ปฏิเสธการเข้าร่วมกิจกรรมเรียบร้อยแล้ว`);
+    }
   };
 
-  // กรองและเรียงข้อมูล
+  // ส่วนของการกรองข้อมูลก่อนแสดงผล
   const filteredAndSortedParticipants = participants
     .filter(
       (participant) =>
@@ -127,11 +157,15 @@ function ActivityParticipationApprovalPage() {
           participant.faculty
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          participant.major.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (filterStatus === "" || participant.attendanceStatus === filterStatus)
+          participant.major.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          participant.eventTitle
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) &&
+        participant.attendanceStatus === "รอเข้าร่วม" &&
+        (filterType === "" || participant.eventType === filterType) // เพิ่มการกรองตามประเภทกิจกรรม
     )
     .sort((a, b) => {
-      // เรียงตามฟิลด์ที่เลือก
+      // โค้ดการเรียงลำดับยังคงเหมือนเดิม...
       const compareA = String(a[sortField]).toLowerCase();
       const compareB = String(b[sortField]).toLowerCase();
 
@@ -246,43 +280,7 @@ function ActivityParticipationApprovalPage() {
                 />
               </svg>
             </button>
-            <h1 className="text-2xl font-bold">รายชื่อผู้เข้าร่วมกิจกรรม</h1>
-          </div>
-          <div
-            className={`p-4 rounded-lg ${
-              theme === "dark" ? "bg-gray-800" : "bg-white"
-            } shadow-md`}
-          >
-            <h2 className="text-xl font-semibold mb-2">
-              {activityDetail.title}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div>
-                <span className="text-sm font-medium block">
-                  ประเภทกิจกรรม:
-                </span>
-                <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                  {activityDetail.eventType}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium block">
-                  วันที่จัดกิจกรรม:
-                </span>
-                <span>
-                  {activityDetail.startDate} - {activityDetail.endDate}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium block">
-                  จำนวนผู้เข้าร่วม:
-                </span>
-                <span>
-                  {activityDetail.participants}/{activityDetail.maxParticipants}{" "}
-                  คน
-                </span>
-              </div>
-            </div>
+            <h1 className="text-2xl font-bold">ผู้ขออนุมัติเข้าร่วมกิจกรรม</h1>
           </div>
         </div>
 
@@ -317,20 +315,20 @@ function ActivityParticipationApprovalPage() {
             </div>
           </div>
 
-          <div>
+          <div className="sm:w-48">
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
               className={`w-full px-4 py-2 rounded-md ${
                 theme === "dark"
                   ? "bg-gray-800 border-gray-700 text-white"
                   : "bg-white border-gray-300 text-gray-900"
               } border`}
             >
-              <option value="">ทุกสถานะ</option>
-              <option value="มาเข้าร่วม">มาเข้าร่วม</option>
-              <option value="ไม่ได้เข้าร่วม">ไม่ได้เข้าร่วม</option>
-              <option value="รอเข้าร่วม">รอเข้าร่วม</option>
+              <option value="">ทุกประเภท</option>
+              <option value="อบรม">อบรม</option>
+              <option value="อาสา">อาสา</option>
+              <option value="ช่วยงาน">ช่วยงาน</option>
             </select>
           </div>
         </div>
@@ -344,12 +342,6 @@ function ActivityParticipationApprovalPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className={`${getHeaderBarColor()} text-white`}>
               <tr>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium"
-                >
-                  ลำดับ
-                </th>
                 <th
                   scope="col"
                   className="px-4 py-3 text-left text-sm font-medium cursor-pointer"
@@ -372,6 +364,34 @@ function ActivityParticipationApprovalPage() {
                   <div className="flex items-center">
                     รหัสนิสิต
                     {sortField === "studentId" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortParticipants("eventTitle")}
+                >
+                  <div className="flex items-center">
+                    ชื่อกิจกรรม
+                    {sortField === "eventTitle" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortParticipants("eventType")}
+                >
+                  <div className="flex items-center">
+                    ประเภทกิจกรรม
+                    {sortField === "eventType" && (
                       <span className="ml-1">
                         {sortOrder === "asc" ? "↑" : "↓"}
                       </span>
@@ -457,14 +477,28 @@ function ActivityParticipationApprovalPage() {
                       theme === "dark" ? "bg-gray-700" : "bg-gray-50"
                     }`}
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">
-                      {indexOfFirstItem + index + 1}
-                    </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                       {participant.name}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
                       {participant.studentId}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <div
+                        className="truncate max-w-[150px]"
+                        title={participant.eventTitle}
+                      >
+                        {participant.eventTitle}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${eventTypeColor(
+                          participant.eventType
+                        )}`}
+                      >
+                        {participant.eventType}
+                      </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
                       <div
@@ -496,22 +530,17 @@ function ActivityParticipationApprovalPage() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                       <div className="flex items-center justify-center space-x-2">
-                        {/* ปุ่มบันทึกเข้าร่วม */}
+                        {/* ปุ่มอนุมัติ */}
                         <button
                           onClick={() =>
                             handleAttendanceChange(participant.id, "มาเข้าร่วม")
                           }
-                          disabled={
-                            participant.attendanceStatus === "มาเข้าร่วม"
-                          }
                           className={`p-1 rounded-full ${
-                            participant.attendanceStatus === "มาเข้าร่วม"
-                              ? "opacity-50 cursor-not-allowed"
-                              : theme === "dark"
+                            theme === "dark"
                               ? "text-green-400 hover:bg-gray-700"
                               : "text-green-600 hover:bg-gray-200"
                           }`}
-                          title="บันทึกเข้าร่วม"
+                          title="อนุมัติ"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -529,22 +558,20 @@ function ActivityParticipationApprovalPage() {
                           </svg>
                         </button>
 
-                        {/* ปุ่มรีเซ็ตสถานะ */}
+                        {/* ปุ่มปฏิเสธ */}
                         <button
                           onClick={() =>
-                            handleAttendanceChange(participant.id, "รอเข้าร่วม")
-                          }
-                          disabled={
-                            participant.attendanceStatus === "รอเข้าร่วม"
+                            handleAttendanceChange(
+                              participant.id,
+                              "ไม่ได้เข้าร่วม"
+                            )
                           }
                           className={`p-1 rounded-full ${
-                            participant.attendanceStatus === "รอเข้าร่วม"
-                              ? "opacity-50 cursor-not-allowed"
-                              : theme === "dark"
-                              ? "text-yellow-400 hover:bg-gray-700"
-                              : "text-yellow-600 hover:bg-gray-200"
+                            theme === "dark"
+                              ? "text-red-400 hover:bg-gray-700"
+                              : "text-red-600 hover:bg-gray-200"
                           }`}
-                          title="รีเซ็ตสถานะ"
+                          title="ปฏิเสธ"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -557,7 +584,7 @@ function ActivityParticipationApprovalPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              d="M6 18L18 6M6 6l12 12"
                             />
                           </svg>
                         </button>
@@ -682,15 +709,12 @@ function ActivityParticipationApprovalPage() {
             </nav>
           </div>
         )}
-        
-       
-        </div>
       </div>
-  
+    </div>
   );
 }
 
-export default ActivityParticipationApprovalPage;
+export default ApprovalRequestsPage;
 
 {
   /* ปุ่มบันทึกไม่เข้าร่วม 

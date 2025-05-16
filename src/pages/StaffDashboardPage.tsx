@@ -259,7 +259,7 @@ function StaffDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Popular Activities Card */}
           <DashboardSummaryCard 
-            title="กิจกรรมที่มีความเข้าร่วมมากที่สุด" 
+            title="กิจกรรมของฉันที่มีคนข้าร่วมมากที่สุด" 
             
           >
             <div className="space-y-1">

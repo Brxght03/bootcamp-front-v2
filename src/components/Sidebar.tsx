@@ -41,7 +41,8 @@ function Sidebar() {
     return location.pathname === path;
   };
 
-  // ตรวจสอบผู้ใช้เป็นเจ้าหน้าที่หรือไม่
+  // ตรวจสอบบทบาทผู้ใช้
+  const isAdmin = userRole === 'admin';
   const isStaff = userRole === 'staff';
 
   return (
@@ -105,13 +106,14 @@ function Sidebar() {
         </div>
         <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>UserName</h3>
         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-          {isStaff ? 'เจ้าหน้าที่' : 'นิสิต'}
+          {isAdmin ? 'ผู้ดูแลระบบ' : isStaff ? 'เจ้าหน้าที่' : 'นิสิต'}
         </p>
       </div>
 
       {/* เมนูในไซด์บาร์ */}
       <nav className="flex-grow px-4 py-6 overflow-y-auto">
         <ul className="space-y-2">
+          {/* เมนูหน้าหลัก - แสดงสำหรับทุกคน */}
           <li>
             <Link
               to="/"
@@ -139,7 +141,97 @@ function Sidebar() {
             </Link>
           </li>
           
-          {/* แสดงเฉพาะเมื่อผู้ใช้เป็นเจ้าหน้าที่ */}
+          {/* แดชบอร์ดแอดมิน - แสดงเฉพาะแอดมิน */}
+          {isAdmin && (
+            <li>
+              <Link
+                to="/admin"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/admin') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
+              >
+                <svg
+                  className={`w-5 h-5 ${isActive('/admin') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  ></path>
+                </svg>
+                <span className="ml-3">แดชบอร์ดผู้ดูแลระบบ</span>
+              </Link>
+            </li>
+          )}
+
+          {/* จัดการสิทธิ์ผู้ใช้ - แสดงเฉพาะแอดมิน */}
+          {isAdmin && (
+            <li>
+              <Link
+                to="/admin/user-permissions"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/admin/user-permissions') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
+              >
+                <svg
+                  className={`w-5 h-5 ${isActive('/admin/user-permissions') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  ></path>
+                </svg>
+                <span className="ml-3">จัดการสิทธิ์ผู้ใช้</span>
+              </Link>
+            </li>
+          )}
+
+          {/* ระงับบัญชีผู้ใช้ - แสดงเฉพาะแอดมิน */}
+          {isAdmin && (
+            <li>
+              <Link
+                to="/admin/user-suspension"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/admin/user-suspension') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
+              >
+                <svg
+                  className={`w-5 h-5 ${isActive('/admin/user-suspension') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                  ></path>
+                </svg>
+                <span className="ml-3">ระงับบัญชีผู้ใช้</span>
+              </Link>
+            </li>
+          )}
+          
+          {/* แดชบอร์ดเจ้าหน้าที่ - เข้าถึงได้เฉพาะเจ้าหน้าที่ */}
           {isStaff && (
             <li>
               <Link
@@ -169,58 +261,68 @@ function Sidebar() {
             </li>
           )}
           
-          <li>
-            <Link
-              to="/activities"
-              className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
-                isActive('/activities') 
-                  ? 'bg-blue-600 text-white' 
-                  : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
-              }`}
-            >
-              <svg
-                className={`w-5 h-5 ${isActive('/activities') ? 'text-white' : 'text-blue-600'}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+          {/* กิจกรรมของฉัน - เข้าถึงได้เฉพาะนิสิตและเจ้าหน้าที่ */}
+          {!isAdmin && (
+            <li>
+              <Link
+                to="/activities"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/activities') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                ></path>
-              </svg>
-              <span className="ml-3">กิจกรรมของฉัน</span>
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/history"
-              className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
-                isActive('/history') 
-                  ? 'bg-blue-600 text-white' 
-                  : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
-              }`}
-            >
-              <svg
-                className={`w-5 h-5 ${isActive('/history') ? 'text-white' : 'text-blue-600'}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+                <svg
+                  className={`w-5 h-5 ${isActive('/activities') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                <span className="ml-3">กิจกรรมของฉัน</span>
+              </Link>
+            </li>
+          )}
+          
+          {/* ประวัติกิจกรรม - เข้าถึงได้เฉพาะนิสิตและเจ้าหน้าที่ */}
+          {!isAdmin && (
+            <li>
+              <Link
+                to="/history"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/history') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-              <span className="ml-3">ประวัติกิจกรรม</span>
-            </Link>
-          </li>
+                <svg
+                  className={`w-5 h-5 ${isActive('/history') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                <span className="ml-3">ประวัติกิจกรรม</span>
+              </Link>
+            </li>
+          )}
+          
+          {/* โปรไฟล์ส่วนตัว - แสดงสำหรับทุกคน */}
+          {!isAdmin && (
           <li>
             <Link
               to="/profile"
@@ -247,7 +349,9 @@ function Sidebar() {
               <span className="ml-3">โปรไฟล์ส่วนตัว</span>
             </Link>
           </li>
+          )}
         </ul>
+            
       </nav>
 
       {/* ปุ่มออกจากระบบ */}
