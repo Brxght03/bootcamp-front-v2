@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTheme } from '../../stores/theme.store';
 import { PieChart, BarChart } from '../charts/Charts';
+import { Link } from 'react-router-dom';
 
 // Dashboard Card component for consistent styling
 const DashboardCard = ({ 
@@ -25,11 +26,14 @@ const DashboardCard = ({
           {title}
         </h2>
         {action && (
-          <a href={action.to} className={`text-sm ${
-            theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'
-          }`}>
+          <Link 
+            to={action.to} 
+            className={`text-sm ${
+              theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'
+            }`}
+          >
             {action.label}
-          </a>
+          </Link>
         )}
       </div>
       <div className="p-4">
