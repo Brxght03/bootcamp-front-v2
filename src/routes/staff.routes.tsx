@@ -5,12 +5,10 @@ import StaffDashboardPage from '../pages/StaffDashboardPage';
 import CreateEventPage from '../pages/CreateEventPage';
 import StaffActivitiesPage from '../pages/StaffActivitiesPage';
 import EditEventPage from '../pages/EditEventPage';
+import ActivityParticipantsPage from '../pages/ActivityParticipantsPage';
 
 // Placeholder component for the Approval Requests page
 const ApprovalRequestsPage = () => <div>Approval Requests Page - coming soon</div>;
-
-// Placeholder component for Activity Participants page
-const ActivityParticipantsPage = () => <div>Activity Participants Page - coming soon</div>;
 
 /**
  * Staff-specific routes
