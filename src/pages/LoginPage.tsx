@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/UseAuth.hook';
 
+
 function LoginPage() {
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +19,7 @@ function LoginPage() {
     };
   }, []);
 
+  
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -44,6 +46,37 @@ function LoginPage() {
       navigate('/');
     }
   };
+  
+
+  /*
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!/^\d{8}$/.test(studentId)) {
+      alert('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
+      return;
+    }
+  
+    if (!password) {
+      alert('กรุณากรอกรหัสผ่าน');
+      return;
+    }
+  
+    try {
+      const result = await login(studentId, password); // เรียก API จริง
+  
+      if (studentId.startsWith('1')) {
+        navigate('/admin');
+      } else if (studentId.startsWith('2')) {
+        navigate('/staff-dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      alert('เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง');
+    }
+  };
+  */
 
   // ฟังก์ชันสลับการแสดง/ซ่อนรหัสผ่าน
   const togglePasswordVisibility = () => {

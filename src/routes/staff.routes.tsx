@@ -3,12 +3,13 @@ import React from 'react';
 import RoleBasedRoute from '../core/guards/RoleBasedRoute';
 import StaffDashboardPage from '../pages/StaffDashboardPage';
 import CreateEventPage from '../pages/CreateEventPage';
-
-// Placeholder component for the Activities page
-const StaffActivitiesPage = () => <div>Staff Activities Page - coming soon</div>;
+import StaffActivitiesPage from '../pages/StaffActivitiesPage';
 
 // Placeholder component for the Approval Requests page
 const ApprovalRequestsPage = () => <div>Approval Requests Page - coming soon</div>;
+
+// Placeholder component for Activity Participants page
+const ActivityParticipantsPage = () => <div>Activity Participants Page - coming soon</div>;
 
 /**
  * Staff-specific routes
@@ -38,6 +39,24 @@ const staffRoutes: RouteObject[] = [
     element: (
       <RoleBasedRoute allowedRoles={['staff']}>
         <StaffActivitiesPage />
+      </RoleBasedRoute>
+    ),
+  },
+  // หน้าแก้ไขกิจกรรม
+  {
+    path: '/edit-event/:id',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <div>Edit Event Page - coming soon</div>
+      </RoleBasedRoute>
+    ),
+  },
+  // หน้าแสดงรายชื่อผู้เข้าร่วมกิจกรรม
+  {
+    path: '/staff/activity-participants/:id',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <ActivityParticipantsPage />
       </RoleBasedRoute>
     ),
   },

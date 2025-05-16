@@ -260,7 +260,7 @@ function StaffDashboardPage() {
           {/* Popular Activities Card */}
           <DashboardSummaryCard 
             title="กิจกรรมที่มีความเข้าร่วมมากที่สุด" 
-            showMore={{ label: "ดูทั้งหมด", to: "/staff/popular-activities" }}
+            
           >
             <div className="space-y-1">
               {popularActivities.map((activity, index) => (
@@ -278,7 +278,7 @@ function StaffDashboardPage() {
           {/* Top Participants Card */}
           <DashboardSummaryCard 
             title="ผู้เข้าร่วมกิจกรรมของฉันมากที่สุด" 
-            showMore={{ label: "ดูทั้งหมด", to: "/staff/top-participants" }}
+            
           >
             <div className="space-y-1">
               {topParticipants.map((participant, index) => (
