@@ -124,7 +124,7 @@ function EventCard({
           
           {/* ปุ่มดูรายละเอียด */}
           <Link
-            to={`/events/${id}`}
+            to={`/events/detail/${id}`}
             className={`block w-full py-2 text-center rounded-md transition-colors ${
               theme === 'dark'
                 ? 'bg-blue-600 text-white hover:bg-blue-700'

@@ -86,39 +86,6 @@ function EventDetailPage() {
     }
   };
 
-  // แสดงสถานะจำนวนผู้สมัคร
-  const getRegistrationStatus = (current: number, max: number): JSX.Element => {
-    const percentage = (current / max) * 100;
-    let colorClass = '';
-    
-    if (percentage < 50) {
-      colorClass = 'bg-green-500';
-    } else if (percentage < 80) {
-      colorClass = 'bg-yellow-500';
-    } else {
-      colorClass = 'bg-red-500';
-    }
-    
-    return (
-      <div className="mt-2">
-        <div className="flex justify-between mb-1">
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            {current} / {max} คน
-          </span>
-          <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            {Math.round(percentage)}%
-          </span>
-        </div>
-        <div className={`w-full h-2 bg-gray-300 rounded-full ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'}`}>
-          <div 
-            className={`h-2 rounded-full ${colorClass}`}
-            style={{ width: `${percentage}%` }}
-          ></div>
-        </div>
-      </div>
-    );
-  };
-
   // ถ้ากำลังโหลด ให้แสดง loading
   if (loading) {
     return (
@@ -164,19 +131,6 @@ function EventDetailPage() {
                     className="w-full h-64 object-cover rounded-lg mb-4"
                   />
                 </CardItem>
-                
-                {/* แท็กประเภทกิจกรรม */}
-                <CardItem translateZ="60" className="absolute top-10 right-10">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    event.eventType === 'อบรม' 
-                      ? 'bg-blue-100 text-blue-600' 
-                      : event.eventType === 'อาสา' 
-                      ? 'bg-green-100 text-green-600' 
-                      : 'bg-purple-100 text-purple-600'
-                  }`}>
-                    {event.eventType}
-                  </span>
-                </CardItem>
 
                 {/* ข้อมูลผู้จัด */}
                 <CardItem translateZ="50" className="w-full mt-2">
@@ -196,27 +150,7 @@ function EventDetailPage() {
                       <span className="font-medium mr-2">สถานะ :</span>
                       <span className="text-blue-600 font-medium">รับสมัคร</span>
                     </div>
-                    {getRegistrationStatus(0, event.maxParticipants)}
                   </div>
-                </CardItem>
-
-                {/* ปุ่มสมัครกิจกรรม */}
-                <CardItem translateZ="80" className="w-full mt-6">
-                  {isRegistered ? (
-                    <button 
-                      disabled
-                      className="w-full py-3 px-4 bg-gray-500 text-white font-medium rounded-md cursor-not-allowed"
-                    >
-                      สมัครแล้ว
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={handleRegister}
-                      className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      สมัครกิจกรรม
-                    </button>
-                  )}
                 </CardItem>
               </CardBody>
             </CardContainer>
@@ -228,11 +162,11 @@ function EventDetailPage() {
               รายละเอียด
             </h2>
             
-            <div className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            <div className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               <p>{event.description}</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* ประเภท */}
               <div>
                 <h3 className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -293,23 +227,24 @@ function EventDetailPage() {
                 </p>
               </div>
             </div>
-            
-            {/* รายละเอียดเพิ่มเติม */}
-            <div className="mt-8">
-              <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-                รายละเอียดเพิ่มเติม
-              </h2>
-              
-              <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <p>
-                  กิจกรรมนี้เป็นส่วนหนึ่งของโครงการส่งเสริมการเรียนรู้ของนิสิตภายในมหาวิทยาลัย 
-                  ผู้เข้าร่วมจะได้รับประสบการณ์และความรู้ที่เป็นประโยชน์ต่อการพัฒนาทักษะในด้านต่างๆ 
-                  ทั้งในด้านวิชาการและการทำงานร่วมกับผู้อื่น
-                </p>
-                <p className="mt-2">
-                  หากมีข้อสงสัยเพิ่มเติม สามารถติดต่อผู้จัดได้ที่อีเมล: {event.organizer.toLowerCase().replace(/\s+/g, '')}@example.com
-                </p>
-              </div>
+
+              {/* ปุ่มสมัครกิจกรรม */}
+              <div className="mt-2">
+              {isRegistered ? (
+                <button 
+                  disabled
+                  className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md cursor-not-allowed"
+                >
+                  สมัครแล้ว
+                </button>
+              ) : (
+                <button 
+                  onClick={handleRegister}
+                  className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  สมัครกิจกรรม
+                </button>
+              )}
             </div>
           </div>
         </div>
