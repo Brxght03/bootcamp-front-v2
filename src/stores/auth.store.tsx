@@ -50,13 +50,36 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
-  const login = (userId = '', role: UserRole = 'student') => {
+  const login = (userId = '', role?: UserRole) => {
+    console.log('Login with userId:', userId);
+    
+    // จำลองตรวจสอบบทบาทตามรหัสนิสิต
+    // สำหรับการทดสอบ: 
+    // รหัสนิสิตที่ขึ้นต้นด้วย '2' จะเป็นเจ้าหน้าที่ (staff)
+    // รหัสนิสิตที่ขึ้นต้นด้วย '1' จะเป็นแอดมิน (admin)
+    // รหัสนิสิตอื่นๆ เป็นนิสิตทั่วไป (student)
+    
+    let userRole: UserRole = 'student';
+    
+    if (role) {
+      // ถ้ามีการระบุบทบาทมาโดยตรง ให้ใช้ค่านั้น
+      userRole = role;
+    } else if (userId.startsWith('2')) {
+      userRole = 'staff';
+      console.log('Detected staff role from ID');
+    } else if (userId.startsWith('1')) {
+      userRole = 'admin';
+      console.log('Detected admin role from ID');
+    }
+    
+    console.log('Setting user role to:', userRole);
+    
     setIsAuthenticated(true);
-    setUserRole(role);
+    setUserRole(userRole);
     setUserId(userId);
     
     // บันทึกข้อมูลการล็อกอินใน localStorage
-    const authData = { userId, role };
+    const authData = { userId, role: userRole };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(authData));
   };
 

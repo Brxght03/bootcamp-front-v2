@@ -6,8 +6,10 @@ import RoleBasedRoute from '../core/guards/RoleBasedRoute';
 import ProtectedRoute from '../core/guards/ProtectedRoute';
 import ProfilePage from '../pages/ProfilePage';
 import EventTypePage from '../pages/EventTypePage';
-import SearchEventPage from '../pages/SearchEventPage'; // เพิ่มการนำเข้า SearchEventPage
+import SearchEventPage from '../pages/SearchEventPage';
 import EventDetailPage from '../pages/EventDetailPage';
+import StaffDashboardPage from '../pages/StaffDashboardPage';
+import staffRoutes from './staff.routes';
 
 const HomePage = React.lazy(() => import('../pages/HomePage'));
 const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
@@ -16,7 +18,6 @@ const NotFoundPage = React.lazy(() => import('../pages/NotFound404.page'));
 
 // หน้าเหล่านี้จะถูกสร้างในอนาคต (สร้างไว้เป็นตัวอย่าง)
 const AdminDashboard = React.lazy(() => import('../pages/HomePage')); // Placeholder
-const StaffDashboard = React.lazy(() => import('../pages/HomePage')); // Placeholder
 
 /**
  * กำหนดเส้นทางทั้งหมดในแอปพลิเคชัน
@@ -80,6 +81,15 @@ const routes: RouteObject[] = [
     path: '/search',
     element: <SearchEventPage />,
   },
+  // แดชบอร์ดเจ้าหน้าที่ - เข้าถึงได้เฉพาะเจ้าหน้าที่
+  {
+    path: '/staff-dashboard',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <StaffDashboardPage />
+      </RoleBasedRoute>
+    ),
+  },
   // แดชบอร์ดแอดมิน - เข้าถึงได้เฉพาะแอดมิน
   {
     path: '/admin',
@@ -89,20 +99,13 @@ const routes: RouteObject[] = [
       </RoleBasedRoute>
     ),
   },
-  // แดชบอร์ดเจ้าหน้าที่ - เข้าถึงได้เฉพาะเจ้าหน้าที่และแอดมิน
-  {
-    path: '/staff-dashboard',
-    element: (
-      <RoleBasedRoute allowedRoles={['staff', 'admin']}>
-        <StaffDashboard />
-      </RoleBasedRoute>
-    ),
-  },
+  // นำเข้าเส้นทางย่อยสำหรับเจ้าหน้าที่ (ยกเว้น staff-dashboard ที่กำหนดด้านบนแล้ว)
+  ...staffRoutes.filter(route => route.path !== '/staff-dashboard'),
   // หน้า 404 สำหรับเส้นทางที่ไม่มีอยู่
   {
     path: '*',
     element: <NotFoundPage />,
-  },
+  }
 ];
 
 export default routes;

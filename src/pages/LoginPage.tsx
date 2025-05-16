@@ -32,21 +32,14 @@ function LoginPage() {
       return;
     }
 
-    // จำลองตรวจสอบบทบาทตามรหัสนิสิต
-    let role = 'student';
-    
-    if (studentId.startsWith('1')) {
-      role = 'admin';
-    } else if (studentId.startsWith('2')) {
-      role = 'staff';
-    }
-
     // เรียกใช้ login จาก auth store
-    //login(studentId, role as any);
+    login(studentId);
     
     // นำทางตามบทบาท
-    if (role === 'admin') {
+    if (studentId.startsWith('1')) {
       navigate('/admin');
+    } else if (studentId.startsWith('2')) {
+      navigate('/staff-dashboard');
     } else {
       navigate('/');
     }
@@ -165,6 +158,17 @@ function LoginPage() {
               </p>
             </div>
           </form>
+        </div>
+        
+        {/* ข้อมูลสำหรับการทดสอบ */}
+        <div className="mt-4 p-4 bg-blue-50 rounded-md max-w-md">
+          <h3 className="text-sm font-semibold text-blue-800 mb-2">สำหรับการทดสอบระบบ:</h3>
+          <ul className="text-sm text-blue-700 list-disc list-inside">
+            <li>รหัสนิสิตเริ่มต้นด้วย <strong>2</strong> (เช่น 26015001): เข้าระบบเป็นเจ้าหน้าที่</li>
+            <li>รหัสนิสิตเริ่มต้นด้วย <strong>1</strong> (เช่น 16015001): เข้าระบบเป็นผู้ดูแลระบบ</li>
+            <li>รหัสนิสิตอื่นๆ (เช่น 66015001): เข้าระบบเป็นนิสิต</li>
+          </ul>
+          <p className="text-xs text-blue-600 mt-2">*หมายเหตุ: รหัสผ่านสามารถใส่ค่าใดก็ได้สำหรับการทดสอบ</p>
         </div>
       </div>
 

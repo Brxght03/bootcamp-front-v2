@@ -41,6 +41,9 @@ function Sidebar() {
     return location.pathname === path;
   };
 
+  // ตรวจสอบผู้ใช้เป็นเจ้าหน้าที่หรือไม่
+  const isStaff = userRole === 'staff';
+
   return (
     <aside className={`flex flex-col h-screen w-64 fixed left-0 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'} shadow-md`}>
       {/* ปุ่ม toggle theme ที่มุมขวาบน */}
@@ -101,7 +104,9 @@ function Sidebar() {
           </button>
         </div>
         <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>UserName</h3>
-        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>นิสิต</p>
+        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          {isStaff ? 'เจ้าหน้าที่' : 'นิสิต'}
+        </p>
       </div>
 
       {/* เมนูในไซด์บาร์ */}
@@ -133,6 +138,37 @@ function Sidebar() {
               <span className="ml-3">หน้าหลัก</span>
             </Link>
           </li>
+          
+          {/* แสดงเฉพาะเมื่อผู้ใช้เป็นเจ้าหน้าที่ */}
+          {isStaff && (
+            <li>
+              <Link
+                to="/staff-dashboard"
+                className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                  isActive('/staff-dashboard') 
+                    ? 'bg-blue-600 text-white' 
+                    : `${theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-700 hover:bg-blue-100'} hover:text-blue-600`
+                }`}
+              >
+                <svg
+                  className={`w-5 h-5 ${isActive('/staff-dashboard') ? 'text-white' : 'text-blue-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  ></path>
+                </svg>
+                <span className="ml-3">แดชบอร์ดเจ้าหน้าที่</span>
+              </Link>
+            </li>
+          )}
+          
           <li>
             <Link
               to="/activities"
