@@ -6,13 +6,22 @@ import { mockEvents } from '../data/mockEvents';
 import { EventCardProps } from '../components/EventCard';
 import { useAuth } from '../hooks/UseAuth.hook';
 
+// เพิ่มสถานะกิจกรรม
+export type EventStatus = 'รออนุมัติ' | 'อนุมัติ' | 'ไม่อนุมัติ';
+
+// ขยาย EventCardProps เพื่อรองรับสถานะการอนุมัติ
+export interface EventWithApprovalProps extends EventCardProps {
+  approvalStatus: EventStatus;
+  createdBy?: string; // ID ของเจ้าหน้าที่ที่สร้างกิจกรรม
+}
+
 function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole, userId } = useAuth();
   
-  const [event, setEvent] = useState<EventCardProps | null>(null);
+  const [event, setEvent] = useState<EventWithApprovalProps | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -20,11 +29,22 @@ function EventDetailPage() {
   // โหลดข้อมูลกิจกรรม
   useEffect(() => {
     if (id) {
-      // สมมติว่าเราใช้ mockEvents จากไฟล์ mockEvents.ts
+      // จำลองการเพิ่มข้อมูลสถานะการอนุมัติและผู้สร้างกิจกรรม
+      // ในการใช้งานจริงควรดึงข้อมูลจาก API
       const foundEvent = mockEvents.find(e => e.id.toString() === id);
       
       if (foundEvent) {
-        setEvent(foundEvent);
+        // จำลองข้อมูลเพิ่มเติม (ในงานจริงควรมีใน API)
+        const eventWithStatus: EventWithApprovalProps = {
+          ...foundEvent,
+          // สมมติข้อมูลสถานะการอนุมัติ (จำลองเพื่อทดสอบ)
+          approvalStatus: id === '1' ? 'อนุมัติ' : id === '2' ? 'รออนุมัติ' : id === '3' ? 'ไม่อนุมัติ' : 'อนุมัติ',
+          // สมมติว่ากิจกรรมที่ ID เป็น 1, 2, 3 สร้างโดยผู้ใช้ปัจจุบัน (เพื่อทดสอบ)
+          createdBy: id === '1' || id === '2' || id === '3' ? userId : 'other-staff-id'
+        };
+        
+        setEvent(eventWithStatus);
+        
         // ตรวจสอบว่าผู้ใช้สมัครแล้วหรือยัง (จำลองจาก localStorage)
         const registeredEvents = localStorage.getItem('registeredEvents');
         if (registeredEvents) {
@@ -35,7 +55,7 @@ function EventDetailPage() {
       
       setLoading(false);
     }
-  }, [id]);
+  }, [id, userId]);
 
   // ฟังก์ชันจัดการการสมัครกิจกรรม
   const handleRegister = () => {
@@ -72,6 +92,33 @@ function EventDetailPage() {
     setShowConfirmDialog(false);
   };
 
+  // ตรวจสอบว่าเป็นผู้สร้างกิจกรรมนี้หรือไม่
+  const isEventCreator = (): boolean => {
+    return (
+      userRole === 'staff' && 
+      event?.createdBy === userId
+    );
+  };
+
+  // ตรวจสอบว่าสามารถแสดงปุ่มสมัครหรือไม่
+  const canShowRegisterButton = (): boolean => {
+    // ถ้าเป็น staff ที่สร้างกิจกรรมนี้ ไม่แสดงปุ่มสมัคร
+    if (isEventCreator()) {
+      return false;
+    }
+    
+    // ถ้ากิจกรรมยังไม่ได้รับการอนุมัติ และผู้ใช้ไม่ใช่ staff หรือ admin ไม่แสดงปุ่มสมัคร
+    if (
+      event?.approvalStatus !== 'อนุมัติ' && 
+      userRole !== 'staff' && 
+      userRole !== 'admin'
+    ) {
+      return false;
+    }
+    
+    return true;
+  };
+
   // กำหนดสีตามประเภทกิจกรรม
   const getEventTypeColor = (type: string): string => {
     switch (type) {
@@ -81,6 +128,20 @@ function EventDetailPage() {
         return theme === 'dark' ? 'text-green-400' : 'text-green-600';
       case 'ช่วยงาน':
         return theme === 'dark' ? 'text-purple-400' : 'text-purple-600';
+      default:
+        return '';
+    }
+  };
+
+  // กำหนดสีตามสถานะการอนุมัติ
+  const getApprovalStatusColor = (status: EventStatus): string => {
+    switch (status) {
+      case 'อนุมัติ':
+        return theme === 'dark' ? 'text-green-400' : 'text-green-600';
+      case 'รออนุมัติ':
+        return theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600';
+      case 'ไม่อนุมัติ':
+        return theme === 'dark' ? 'text-red-400' : 'text-red-600';
       default:
         return '';
     }
@@ -100,6 +161,46 @@ function EventDetailPage() {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
         <h1 className="text-2xl font-bold mb-4">ไม่พบกิจกรรมที่ต้องการ</h1>
+        <button
+          onClick={() => navigate('/')}
+          className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+        >
+          กลับไปหน้าหลัก
+        </button>
+      </div>
+    );
+  }
+
+  // ถ้าผู้ใช้ทั่วไปพยายามเข้าถึงกิจกรรมที่ยังไม่ได้รับการอนุมัติ
+  if (
+    event.approvalStatus !== 'อนุมัติ' && 
+    userRole !== 'staff' && 
+    userRole !== 'admin'
+  ) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
+        <h1 className="text-2xl font-bold mb-4">กิจกรรมนี้ยังไม่เปิดให้เข้าถึง</h1>
+        <p className="mb-4 text-center">กิจกรรมนี้ยังอยู่ในระหว่างการพิจารณาหรือไม่ได้รับการอนุมัติ</p>
+        <button
+          onClick={() => navigate('/')}
+          className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+        >
+          กลับไปหน้าหลัก
+        </button>
+      </div>
+    );
+  }
+
+  // ถ้าเป็น staff แต่ไม่ใช่ผู้สร้างกิจกรรมนี้และกิจกรรมยังไม่ได้รับการอนุมัติ
+  if (
+    userRole === 'staff' && 
+    event.approvalStatus !== 'อนุมัติ' && 
+    event.createdBy !== userId
+  ) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
+        <h1 className="text-2xl font-bold mb-4">ไม่มีสิทธิ์เข้าถึงกิจกรรมนี้</h1>
+        <p className="mb-4 text-center">กิจกรรมนี้ยังไม่ได้รับการอนุมัติและคุณไม่ใช่ผู้สร้างกิจกรรมนี้</p>
         <button
           onClick={() => navigate('/')}
           className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
@@ -143,15 +244,29 @@ function EventDetailPage() {
                   </div>
                 </CardItem>
 
-                {/* สถานะ */}
+                {/* สถานะการอนุมัติ */}
                 <CardItem translateZ="50" className="w-full mt-4">
                   <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     <div className="flex items-center mb-2">
                       <span className="font-medium mr-2">สถานะ :</span>
-                      <span className="text-blue-600 font-medium">รับสมัคร</span>
+                      <span className={`font-medium ${getApprovalStatusColor(event.approvalStatus)}`}>
+                        {event.approvalStatus}
+                      </span>
                     </div>
                   </div>
                 </CardItem>
+                
+                {/* แสดงข้อมูลเพิ่มเติมสำหรับผู้สร้างกิจกรรม */}
+                {isEventCreator() && (
+                  <CardItem translateZ="50" className="w-full mt-4">
+                    <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <div className="flex items-center mb-2">
+                        <span className="font-medium mr-2">สถานะผู้ใช้ :</span>
+                        <span className="font-medium text-blue-600">ผู้สร้างกิจกรรมนี้</span>
+                      </div>
+                    </div>
+                  </CardItem>
+                )}
               </CardBody>
             </CardContainer>
           </div>
@@ -228,24 +343,56 @@ function EventDetailPage() {
               </div>
             </div>
 
-              {/* ปุ่มสมัครกิจกรรม */}
+            {/* ปุ่มสมัครกิจกรรม - แสดงเฉพาะเมื่อมีเงื่อนไขที่เหมาะสม */}
+            {canShowRegisterButton() && (
               <div className="mt-2">
-              {isRegistered ? (
-                <button 
-                  disabled
-                  className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md cursor-not-allowed"
-                >
-                  สมัครแล้ว
-                </button>
-              ) : (
-                <button 
-                  onClick={handleRegister}
-                  className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  สมัครกิจกรรม
-                </button>
-              )}
-            </div>
+                {isRegistered ? (
+                  <button 
+                    disabled
+                    className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md cursor-not-allowed"
+                  >
+                    สมัครแล้ว
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleRegister}
+                    className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    สมัครกิจกรรม
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {/* แสดงข้อความสำหรับผู้สร้างกิจกรรม */}
+            {isEventCreator() && (
+              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-md">
+                <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                  คุณเป็นผู้สร้างกิจกรรมนี้ ไม่สามารถสมัครเข้าร่วมได้
+                </p>
+              </div>
+            )}
+            
+            {/* แสดงสถานะการอนุมัติสำหรับผู้มีสิทธิ์ */}
+            {(userRole === 'staff' || userRole === 'admin') && (
+              <div className={`mt-4 p-3 rounded-md ${
+                event.approvalStatus === 'อนุมัติ'
+                  ? 'bg-green-100 dark:bg-green-900'
+                  : event.approvalStatus === 'รออนุมัติ'
+                    ? 'bg-yellow-100 dark:bg-yellow-900'
+                    : 'bg-red-100 dark:bg-red-900'
+              }`}>
+                <p className={`text-sm text-center ${
+                  event.approvalStatus === 'อนุมัติ'
+                    ? theme === 'dark' ? 'text-green-300' : 'text-green-700'
+                    : event.approvalStatus === 'รออนุมัติ'
+                      ? theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'
+                      : theme === 'dark' ? 'text-red-300' : 'text-red-700'
+                }`}>
+                  สถานะการอนุมัติ: {event.approvalStatus}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

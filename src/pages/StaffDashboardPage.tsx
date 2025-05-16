@@ -8,6 +8,12 @@ import {
   TypeBadge, 
   ApprovalActions 
 } from '../components/dashboard/DashboardComponents';
+import { 
+  DashboardSummaryCard,
+  ActivityListItem, 
+  PopularActivitiesCard, 
+  TopParticipantsCard 
+} from '../components/DashboardSummaryCards';
 
 // Mock data for dashboard
 interface ActivityData {
@@ -134,10 +140,26 @@ const mockApprovalRequests: ApprovalRequest[] = [
   }
 ];
 
+// Mock data for popular activities
+const mockPopularActivities = [
+  { id: '1', title: 'BootCampCPE', count: 25 },
+  { id: '2', title: 'ปลูกป่าชายเลนเพื่อโลกสีเขียว', count: 22 },
+  { id: '3', title: 'งานวิ่งการกุศล Run for Wildlife', count: 18 }
+];
+
+// Mock data for top participants
+const mockTopParticipants = [
+  { id: '1', name: 'นายสมชาย ใจดี', count: 15, activityId: '1' },
+  { id: '2', name: 'นางสาวสมหญิง รักเรียน', count: 12, activityId: '2' },
+  { id: '3', name: 'นายวิชัย เก่งกาจ', count: 8, activityId: '3' }
+];
+
 function StaffDashboardPage() {
   const { theme } = useTheme();
   const [activities, setActivities] = useState<ActivityData[]>(mockActivities);
   const [approvalRequests, setApprovalRequests] = useState<ApprovalRequest[]>(mockApprovalRequests);
+  const [popularActivities, setPopularActivities] = useState(mockPopularActivities);
+  const [topParticipants, setTopParticipants] = useState(mockTopParticipants);
 
   // Count activity types for pie chart
   const activityTypeCount = {
@@ -165,7 +187,8 @@ function StaffDashboardPage() {
             แดชบอร์ดเจ้าหน้าที่
           </h1>
           <div className="flex space-x-4">
-            <button
+            <Link
+              to="/create-event"
               className={`px-4 py-2 rounded-md ${
                 theme === 'dark' 
                   ? 'bg-blue-600 hover:bg-blue-700' 
@@ -176,7 +199,7 @@ function StaffDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               สร้างกิจกรรมใหม่
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -230,6 +253,45 @@ function StaffDashboardPage() {
               />
             </div>
           </DashboardCard>
+        </div>
+
+        {/* Second Row - Popular Activities and Top Participants */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Popular Activities Card */}
+          <DashboardSummaryCard 
+            title="กิจกรรมที่มีความเข้าร่วมมากที่สุด" 
+            showMore={{ label: "ดูทั้งหมด", to: "/staff/popular-activities" }}
+          >
+            <div className="space-y-1">
+              {popularActivities.map((activity, index) => (
+                <ActivityListItem 
+                  key={activity.id}
+                  id={activity.id}
+                  number={index + 1}
+                  title={activity.title}
+                  count={activity.count}
+                />
+              ))}
+            </div>
+          </DashboardSummaryCard>
+
+          {/* Top Participants Card */}
+          <DashboardSummaryCard 
+            title="ผู้เข้าร่วมกิจกรรมของฉันมากที่สุด" 
+            showMore={{ label: "ดูทั้งหมด", to: "/staff/top-participants" }}
+          >
+            <div className="space-y-1">
+              {topParticipants.map((participant, index) => (
+                <ActivityListItem 
+                  key={participant.id}
+                  number={index + 1}
+                  title={participant.name}
+                  count={participant.count}
+                  unit="กิจกรรม"
+                />
+              ))}
+            </div>
+          </DashboardSummaryCard>
         </div>
 
         {/* Activities & Approval Tables Row */}

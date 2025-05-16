@@ -1,9 +1,8 @@
-// This file is a placeholder for staff-specific routes which would be implemented later.
-
-import React from 'react';
 import { RouteObject } from 'react-router-dom';
-import StaffDashboardPage from '../pages/StaffDashboardPage';
+import React from 'react';
 import RoleBasedRoute from '../core/guards/RoleBasedRoute';
+import StaffDashboardPage from '../pages/StaffDashboardPage';
+import CreateEventPage from '../pages/CreateEventPage';
 
 // Placeholder component for the Activities page
 const StaffActivitiesPage = () => <div>Staff Activities Page - coming soon</div>;
@@ -24,6 +23,15 @@ const staffRoutes: RouteObject[] = [
       </RoleBasedRoute>
     ),
   },
+  // หน้าสร้างกิจกรรมใหม่
+  {
+    path: '/create-event',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <CreateEventPage />
+      </RoleBasedRoute>
+    ),
+  },
   // หน้ารายการกิจกรรมของเจ้าหน้าที่
   {
     path: '/staff/activities',
@@ -39,6 +47,24 @@ const staffRoutes: RouteObject[] = [
     element: (
       <RoleBasedRoute allowedRoles={['staff']}>
         <ApprovalRequestsPage />
+      </RoleBasedRoute>
+    ),
+  },
+  // หน้ากิจกรรมยอดนิยม
+  {
+    path: '/staff/popular-activities',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <div>Popular Activities Page - coming soon</div>
+      </RoleBasedRoute>
+    ),
+  },
+  // หน้าผู้เข้าร่วมกิจกรรมมากที่สุด
+  {
+    path: '/staff/top-participants',
+    element: (
+      <RoleBasedRoute allowedRoles={['staff']}>
+        <div>Top Participants Page - coming soon</div>
       </RoleBasedRoute>
     ),
   },

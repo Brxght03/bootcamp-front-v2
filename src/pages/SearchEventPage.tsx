@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../stores/theme.store';
-import EventCard, { EventCardProps } from '../components/EventCard';
+import EventCard from '../components/EventCard';
 import SearchBar from '../components/SearchBar';
-import { searchEvents } from '../data/mockEvents';
+import { searchEvents, filterEventsByPermission, mockEventsWithApproval } from '../data/mockEventsWithApproval';
+import { useAuth } from '../hooks/UseAuth.hook';
 
 // ประเภทสำหรับฟิลเตอร์การค้นหา
 interface SearchFilterType {
@@ -16,6 +17,7 @@ function SearchEventPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { userRole, userId } = useAuth();
   
   // ดึงค่า query parameters จาก URL
   const queryParams = new URLSearchParams(location.search);
@@ -28,7 +30,7 @@ function SearchEventPage() {
 
   const [searchTerm, setSearchTerm] = useState(initialSearchQuery);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchResults, setSearchResults] = useState<EventCardProps[]>([]);
+  const [searchResults, setSearchResults] = useState<typeof mockEventsWithApproval>([]);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilterType[]>([
     { id: 'training', label: 'อบรม', checked: initialFilters.training },
@@ -40,10 +42,10 @@ function SearchEventPage() {
   
   // ทำการค้นหาเมื่อโหลดหน้าด้วยค่าจาก URL
   useEffect(() => {
-    if (initialSearchQuery) {
+    if (initialSearchQuery || Object.values(initialFilters).some(value => value)) {
       performSearch(initialSearchQuery, searchFilters);
     }
-  }, []);
+  }, [userRole, userId]);
 
   // ฟังก์ชันสำหรับการค้นหา
   const performSearch = (query: string, filters: SearchFilterType[]) => {
@@ -54,7 +56,8 @@ function SearchEventPage() {
       helper: filters.find(f => f.id === 'helper')?.checked || false
     };
     
-    const results = searchEvents(query, filterOptions);
+    // ใช้ฟังก์ชัน searchEvents ที่ปรับปรุงแล้วเพื่อให้คำนึงถึงสิทธิ์การเข้าถึง
+    const results = searchEvents(query, filterOptions, userRole, userId);
     setSearchResults(results);
     setSearchPerformed(true);
     setCurrentPage(1);
@@ -82,7 +85,7 @@ function SearchEventPage() {
   // คำนวณจำนวนหน้าทั้งหมด
   const totalPages = Math.ceil(searchResults.length / eventsPerPage);
   
-  // คำนวณอินเด็กซ์ของกิจกรรมแรกและสุดท้ายที่จะแสดงในหน้าปัจจุบัน
+  // คำนวณอินเด็กซ์ของกิจกรรมแรกและสุดท้ายที่แสดงในหน้าปัจจุบัน
   const indexOfLastEvent = currentPage * eventsPerPage;
   const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
   const currentEvents = searchResults.slice(indexOfFirstEvent, indexOfLastEvent);
@@ -92,6 +95,29 @@ function SearchEventPage() {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // แสดงข้อความระบุสถานะการอนุมัติในส่วนหัวของหน้า (เฉพาะเจ้าหน้าที่และแอดมิน)
+  const renderApprovalStatusInfo = () => {
+    if (userRole !== 'staff' && userRole !== 'admin') return null;
+    
+    return (
+      <div className={`p-4 mb-6 rounded-lg ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-50'}`}>
+        <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+          <span className="font-bold">หมายเหตุ:</span> กิจกรรมที่แสดงต่อผู้ใช้ทั่วไปต้องมีสถานะ "อนุมัติ" เท่านั้น
+          {userRole === 'staff' && (
+            <>
+              {' '}คุณจะเห็นกิจกรรมที่รออนุมัติหรือไม่อนุมัติเฉพาะที่คุณสร้างขึ้นเท่านั้น
+            </>
+          )}
+          {userRole === 'admin' && (
+            <>
+              {' '}ในฐานะผู้ดูแลระบบ คุณสามารถเห็นกิจกรรมทั้งหมดในทุกสถานะ
+            </>
+          )}
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -106,7 +132,7 @@ function SearchEventPage() {
         </div>
         
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-6">
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
             ค้นหากิจกรรม
           </h1>
@@ -116,6 +142,9 @@ function SearchEventPage() {
             </span>
           )}
         </div>
+        
+        {/* ข้อความแสดงสถานะการอนุมัติ (เฉพาะเจ้าหน้าที่และแอดมิน) */}
+        {renderApprovalStatusInfo()}
         
         {/* แสดงผลการค้นหา */}
         {searchPerformed ? (

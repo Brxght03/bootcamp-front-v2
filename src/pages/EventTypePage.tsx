@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../stores/theme.store';
-import EventCard, { EventCardProps } from '../components/EventCard';
+import EventCard from '../components/EventCard';
 import SearchBar from '../components/SearchBar';
-import { mockEvents } from '../data/mockEvents'; 
+import { filterEventsByPermission, mockEventsWithApproval } from '../data/mockEventsWithApproval';
+import { useAuth } from '../hooks/UseAuth.hook';
 
 // ตัวเลือกประเภทกิจกรรม
 type EventType = 'อบรม' | 'อาสา' | 'ช่วยงาน';
@@ -19,9 +20,11 @@ function EventTypePage() {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { userRole, userId } = useAuth();
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredEvents, setFilteredEvents] = useState<EventCardProps[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<typeof mockEventsWithApproval>([]);
   const eventsPerPage = 9; // 3 x 3 grid
 
   // แปลงประเภทกิจกรรมจาก URL parameter (ที่อาจจะเป็นภาษาอังกฤษหรือถูกเข้ารหัส) เป็นภาษาไทย
@@ -46,7 +49,11 @@ function EventTypePage() {
 
   // กรองกิจกรรมตามประเภทและคำค้นหา
   useEffect(() => {
-    const filtered = mockEvents.filter(event => {
+    // 1. กรองตามสิทธิ์การเข้าถึง
+    const accessFilteredEvents = filterEventsByPermission(mockEventsWithApproval, userRole, userId);
+    
+    // 2. กรองตามประเภทและคำค้นหา
+    const filtered = accessFilteredEvents.filter(event => {
       // กรองตามประเภท
       if (event.eventType !== eventType) return false;
       
@@ -66,7 +73,7 @@ function EventTypePage() {
     
     setFilteredEvents(filtered);
     setCurrentPage(1); // รีเซ็ตหน้าเมื่อมีการเปลี่ยนแปลงการกรอง
-  }, [eventType, searchTerm]);
+  }, [eventType, searchTerm, userRole, userId]);
 
   // คำนวณจำนวนหน้าทั้งหมด
   const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
@@ -104,10 +111,33 @@ function EventTypePage() {
     }
   };
 
+  // แสดงข้อความระบุสถานะการอนุมัติในส่วนหัวของหน้า (เฉพาะเจ้าหน้าที่และแอดมิน)
+  const renderApprovalStatusInfo = () => {
+    if (userRole !== 'staff' && userRole !== 'admin') return null;
+    
+    return (
+      <div className={`p-4 mb-6 rounded-lg ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-50'}`}>
+        <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+          <span className="font-bold">หมายเหตุ:</span> กิจกรรมที่แสดงต่อผู้ใช้ทั่วไปต้องมีสถานะ "อนุมัติ" เท่านั้น
+          {userRole === 'staff' && (
+            <>
+              {' '}คุณจะเห็นกิจกรรมที่รออนุมัติหรือไม่อนุมัติเฉพาะที่คุณสร้างขึ้นเท่านั้น
+            </>
+          )}
+          {userRole === 'admin' && (
+            <>
+              {' '}ในฐานะผู้ดูแลระบบ คุณสามารถเห็นกิจกรรมทั้งหมดในทุกสถานะ
+            </>
+          )}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
       <div className="container mx-auto py-8 px-4">
-        {/* Search Bar - ทำให้เลื่อนตามจอเหมือนใน HomePage */}
+        {/* Search Bar - ทำให้เลื่อนตามจอ */}
         <div className="sticky top-0 z-10 py-4 mb-8">
           <SearchBar 
             onSearch={handleSearch}
@@ -116,7 +146,7 @@ function EventTypePage() {
         </div>
 
         {/* Header with Type */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-6">
           <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
             ประเภท
           </h1>
@@ -124,6 +154,9 @@ function EventTypePage() {
             {eventType}
           </span>
         </div>
+        
+        {/* ข้อความแสดงสถานะการอนุมัติ (เฉพาะเจ้าหน้าที่และแอดมิน) */}
+        {renderApprovalStatusInfo()}
 
         {/* Event Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
