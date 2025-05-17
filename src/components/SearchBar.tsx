@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../stores/theme.store';
+import { useNavigate } from 'react-router-dom';
+import LoadingPage from '../pages/LoadingPage';
 
 // ประเภทที่ใช้ในการค้นหา
 interface SearchFilterType {
@@ -15,8 +17,11 @@ interface SearchBarProps {
 
 function SearchBar({ className = '', onSearch }: SearchBarProps) {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showError, setShowError] = useState(false);
   
   // ตัวเลือกประเภทสำหรับการค้นหา
   const [searchFilters, setSearchFilters] = useState<SearchFilterType[]>([
@@ -25,6 +30,17 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
     { id: 'helper', label: 'ช่วยงาน', checked: false },
   ]);
 
+  // เพิ่ม useEffect สำหรับจัดการการแสดง error (จำลอง)
+  useEffect(() => {
+    if (showError) {
+      const timer = setTimeout(() => {
+        navigate('/error-500');
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showError, navigate]);
+
   // ฟังก์ชันสำหรับการสลับเลือก/ยกเลิกการเลือกฟิลเตอร์
   const toggleFilter = (id: string) => {
     const updatedFilters = searchFilters.map((filter) =>
@@ -32,18 +48,38 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
     );
     
     setSearchFilters(updatedFilters);
-    
-    // ส่งผลลัพธ์กลับไปยัง parent component ถ้ามีการกำหนด callback
-    if (onSearch) {
-      onSearch(searchTerm, updatedFilters);
-    }
   };
 
   // ฟังก์ชันสำหรับการค้นหา
   const handleSearch = () => {
-    if (onSearch) {
-      onSearch(searchTerm, searchFilters);
-    }
+    setIsLoading(true);
+    
+    // จำลองการค้นหาและโหลดข้อมูล
+    setTimeout(() => {
+      setIsLoading(false);
+      
+      // โอกาส 10% ที่จะแสดงหน้า Error
+      const shouldShowError = Math.random() < 0.1;
+      
+      if (shouldShowError) {
+        setShowError(true);
+      } else if (onSearch) {
+        onSearch(searchTerm, searchFilters);
+      } else {
+        // สร้าง URL พารามิเตอร์
+        const searchParams = new URLSearchParams();
+        if (searchTerm) searchParams.set('q', searchTerm);
+        
+        // ตรวจสอบฟิลเตอร์ที่เลือก
+        searchFilters.forEach(filter => {
+          if (filter.checked) {
+            searchParams.set(filter.id, 'true');
+          }
+        });
+        
+        navigate(`/search?${searchParams.toString()}`);
+      }
+    }, 1500); // จำลองการโหลด 1.5 วินาที
   };
 
   // ฟังก์ชันสำหรับการกด Enter
@@ -52,6 +88,11 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
       handleSearch();
     }
   };
+
+  // ถ้ากำลังโหลดข้อมูล ให้แสดง LoadingPage
+  if (isLoading) {
+    return <LoadingPage />;
+  }
 
   return (
     <div className={`${className} sticky top-4 z-10 `}>
@@ -93,7 +134,7 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
             {/* ปุ่มค้นหา */}
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 focus:outline-none"
+              className="px-4 py-2 bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 focus:outline-none transition-colors"
             >
               ค้นหา
             </button>
@@ -105,7 +146,7 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
                 theme === 'dark' 
                   ? 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700' 
                   : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-              }`}
+              } transition-colors`}
             >
               <span className="sr-only">เลือกประเภท</span>
               <svg
@@ -155,6 +196,20 @@ function SearchBar({ className = '', onSearch }: SearchBarProps) {
                     </label>
                   </div>
                 ))}
+                
+                {/* ปุ่มยืนยันการเลือกฟิลเตอร์ */}
+                <div className="flex justify-end mt-3">
+                  <button
+                    onClick={() => setShowTypeDropdown(false)}
+                    className={`px-3 py-1 text-sm rounded ${
+                      theme === 'dark' 
+                        ? 'bg-blue-600 hover:bg-blue-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white transition-colors`}
+                  >
+                    ตกลง
+                  </button>
+                </div>
               </div>
             </div>
           )}

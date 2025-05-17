@@ -4,7 +4,8 @@ import SearchBar from '../components/SearchBar';
 import EventCard from '../components/EventCard';
 import { EventSectionCard } from '../components/layouts';
 import Carousel from '../components/Carousel';
-import { mockEvents, getEventsByType } from '../data/mockEvents'; // นำเข้าข้อมูลจาก mockEvents
+import { mockEvents, getEventsByType } from '../data/mockEvents';
+import LoadingPage from './LoadingPage';
 
 // ประเภทสำหรับฟิลเตอร์การค้นหา
 interface SearchFilterType {
@@ -18,9 +19,20 @@ function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState<SearchFilterType[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
   
   // แยกกิจกรรมตามประเภท
   const { trainingEvents, volunteerEvents, helperEvents } = getEventsByType();
+  
+  // จำลองการโหลดข้อมูลเมื่อเริ่มต้น
+  useEffect(() => {
+    // จำลองการโหลดข้อมูลเริ่มต้น
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // รูปภาพสำหรับ Carousel
   const carouselImages = [
@@ -53,21 +65,27 @@ function HomePage() {
 
   // ฟังก์ชันสำหรับการจัดการการค้นหา
   const handleSearch = (query: string, filters: SearchFilterType[]) => {
-    setSearchQuery(query);
-    setSearchFilters(filters);
+    setIsLoading(true); // เริ่มแสดง loading
     
-    // นำทางไปยังหน้าค้นหาพร้อมพารามิเตอร์
-    const searchParams = new URLSearchParams();
-    if (query) searchParams.set('q', query);
-    
-    // ตรวจสอบฟิลเตอร์ที่เลือก
-    filters.forEach(filter => {
-      if (filter.checked) {
-        searchParams.set(filter.id, 'true');
-      }
-    });
-    
-    window.location.href = `/search?${searchParams.toString()}`;
+    // จำลองการโหลดข้อมูลเมื่อค้นหา
+    setTimeout(() => {
+      setSearchQuery(query);
+      setSearchFilters(filters);
+      setIsLoading(false);
+      
+      // นำทางไปยังหน้าค้นหาพร้อมพารามิเตอร์
+      const searchParams = new URLSearchParams();
+      if (query) searchParams.set('q', query);
+      
+      // ตรวจสอบฟิลเตอร์ที่เลือก
+      filters.forEach(filter => {
+        if (filter.checked) {
+          searchParams.set(filter.id, 'true');
+        }
+      });
+      
+      window.location.href = `/search?${searchParams.toString()}`;
+    }, 2000); // จำลองการโหลด 2 วินาที
   };
 
   // ฟังก์ชันกรองกิจกรรมตามประเภท
@@ -81,8 +99,19 @@ function HomePage() {
 
   // ฟังก์ชันเปลี่ยนแท็บที่เลือก
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
+    setIsLoading(true); // เริ่มแสดง loading
+    
+    // จำลองการโหลดข้อมูลเมื่อเปลี่ยนแท็บ
+    setTimeout(() => {
+      setActiveTab(tab);
+      setIsLoading(false);
+    }, 1000); // จำลองการโหลด 1 วินาที
   };
+
+  // แสดง LoadingPage ถ้ากำลังโหลดข้อมูล
+  if (isLoading) {
+    return <LoadingPage />;
+  }
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
@@ -123,7 +152,7 @@ function HomePage() {
                 : theme === 'dark'
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            } transition-colors`}
           >
             ทั้งหมด
           </button>
@@ -137,7 +166,7 @@ function HomePage() {
                 : theme === 'dark'
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            } transition-colors`}
           >
             อบรม
           </button>
@@ -151,7 +180,7 @@ function HomePage() {
                 : theme === 'dark'
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            } transition-colors`}
           >
             อาสา
           </button>
@@ -165,7 +194,7 @@ function HomePage() {
                 : theme === 'dark'
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            } transition-colors`}
           >
             ช่วยงาน
           </button>

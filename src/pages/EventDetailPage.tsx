@@ -24,7 +24,10 @@ function EventDetailPage() {
   const [event, setEvent] = useState<EventWithApprovalProps | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showApprovalConfirmDialog, setShowApprovalConfirmDialog] = useState(false);
+  const [showRejectConfirmDialog, setShowRejectConfirmDialog] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
 
   // โหลดข้อมูลกิจกรรม
   useEffect(() => {
@@ -92,12 +95,60 @@ function EventDetailPage() {
     setShowConfirmDialog(false);
   };
 
+  // ฟังก์ชันจัดการการอนุมัติกิจกรรม
+  const handleApprove = () => {
+    setApprovalAction('approve');
+    setShowApprovalConfirmDialog(true);
+  };
+
+  // ฟังก์ชันจัดการการปฏิเสธกิจกรรม
+  const handleReject = () => {
+    setApprovalAction('reject');
+    setShowRejectConfirmDialog(true);
+  };
+
+  // ฟังก์ชันยืนยันการอนุมัติหรือปฏิเสธกิจกรรม
+  const confirmApprovalAction = () => {
+    if (event && id) {
+      if (approvalAction === 'approve') {
+        // จำลองการเปลี่ยนสถานะการอนุมัติ (ในงานจริงควรใช้ API)
+        setEvent({
+          ...event,
+          approvalStatus: 'อนุมัติ'
+        });
+        setShowApprovalConfirmDialog(false);
+      } else if (approvalAction === 'reject') {
+        // จำลองการเปลี่ยนสถานะการปฏิเสธ (ในงานจริงควรใช้ API)
+        setEvent({
+          ...event,
+          approvalStatus: 'ไม่อนุมัติ'
+        });
+        setShowRejectConfirmDialog(false);
+      }
+    }
+  };
+
+  // ฟังก์ชันยกเลิก dialog การอนุมัติหรือปฏิเสธ
+  const cancelApprovalAction = () => {
+    if (approvalAction === 'approve') {
+      setShowApprovalConfirmDialog(false);
+    } else if (approvalAction === 'reject') {
+      setShowRejectConfirmDialog(false);
+    }
+    setApprovalAction(null);
+  };
+
   // ตรวจสอบว่าเป็นผู้สร้างกิจกรรมนี้หรือไม่
   const isEventCreator = (): boolean => {
     return (
       userRole === 'staff' && 
       event?.createdBy === userId
     );
+  };
+
+  // ตรวจสอบว่าเป็น admin หรือไม่
+  const isAdmin = (): boolean => {
+    return userRole === 'admin';
   };
 
   // ตรวจสอบว่าสามารถแสดงปุ่มสมัครหรือไม่
@@ -117,6 +168,12 @@ function EventDetailPage() {
     }
     
     return true;
+  };
+
+  // ตรวจสอบว่าสามารถแสดงปุ่มอนุมัติ/ปฏิเสธหรือไม่
+  const canShowApprovalButtons = (): boolean => {
+    // แสดงปุ่มอนุมัติ/ปฏิเสธเฉพาะ admin และสถานะของกิจกรรมเป็น "รออนุมัติ"
+    return isAdmin() && event?.approvalStatus === 'รออนุมัติ';
   };
 
   // กำหนดสีตามประเภทกิจกรรม
@@ -347,7 +404,7 @@ function EventDetailPage() {
             </div>
 
             {/* ปุ่มสมัครกิจกรรม - แสดงเฉพาะเมื่อมีเงื่อนไขที่เหมาะสม */}
-            {canShowRegisterButton() && (
+            {canShowRegisterButton() && !isAdmin && (
               <div className="mt-2">
                 {isRegistered ? (
                   <button 
@@ -369,19 +426,43 @@ function EventDetailPage() {
             
             {/* แสดงข้อความสำหรับผู้สร้างกิจกรรม */}
             {isEventCreator() && (
-              <div className="mt-4 p-3 bg-blue-100  dark:bg-blue-900 rounded-md">
-                <p className={`text-sm text-center text-blue-700 ${theme === 'dark' ? 'text-blue-700' : 'text-blue-300'}`}>
+              <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-md">
+                <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
                   คุณเป็นผู้สร้างกิจกรรมนี้ 
                 </p>
               </div>
             )}
             
-            
+            {/* ปุ่มอนุมัติ/ปฏิเสธกิจกรรม - แสดงเฉพาะสำหรับ admin และกิจกรรมที่รออนุมัติ */}
+            {canShowApprovalButtons() && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleReject}
+                  className={`py-2 px-4 font-medium rounded-md ${
+                    theme === 'dark' 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+                >
+                  ปฏิเสธกิจกรรม
+                </button>
+                <button
+                  onClick={handleApprove}
+                  className={`py-2 px-4 font-medium rounded-md ${
+                    theme === 'dark' 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
+                >
+                  อนุมัติกิจกรรม
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog สำหรับการสมัครกิจกรรม */}
       {showConfirmDialog && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className={`max-w-md w-full p-6 rounded-lg shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
@@ -406,6 +487,72 @@ function EventDetailPage() {
               <button
                 onClick={confirmRegistration}
                 className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog สำหรับการอนุมัติกิจกรรม */}
+      {showApprovalConfirmDialog && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className={`max-w-md w-full p-6 rounded-lg shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <h2 className={`text-xl font-bold mb-4 text-center ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              ยืนยันการอนุมัติกิจกรรม
+            </h2>
+            <p className={`text-center mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              {event.title}
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={cancelApprovalAction}
+                className={`flex-1 py-2 px-4 rounded-md border ${
+                  theme === 'dark' 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={confirmApprovalAction}
+                className="flex-1 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog สำหรับการปฏิเสธกิจกรรม */}
+      {showRejectConfirmDialog && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className={`max-w-md w-full p-6 rounded-lg shadow-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <h2 className={`text-xl font-bold mb-4 text-center ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+              ยืนยันการปฏิเสธกิจกรรม
+            </h2>
+            <p className={`text-center mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              {event.title}
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={cancelApprovalAction}
+                className={`flex-1 py-2 px-4 rounded-md border ${
+                  theme === 'dark' 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={confirmApprovalAction}
+                className="flex-1 py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700"
               >
                 ยืนยัน
               </button>

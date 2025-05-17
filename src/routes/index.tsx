@@ -12,6 +12,7 @@ import StaffDashboardPage from '../pages/StaffDashboardPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import staffRoutes from './staff.routes';
 import adminRoutes from './admin.routes';
+import Error500Page from '../pages/Error500Page';
 
 const HomePage = React.lazy(() => import('../pages/HomePage'));
 const ActivitiesPage = React.lazy(() => import('../pages/ActivitiesPage'));
@@ -106,7 +107,12 @@ const routes: RouteObject[] = [
   {
     path: '*',
     element: <NotFoundPage />,
+  },
+  {
+    path: '/error-500',
+    element: <Error500Page />,
   }
+ 
 ];
 
 export default routes;
