@@ -2,9 +2,10 @@ import { RouteObject } from 'react-router-dom';
 import React from 'react';
 import RoleBasedRoute from '../core/guards/RoleBasedRoute';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import EventApprovalRequestsPage from '../pages/EventApprovalRequestsPage';
 
 // Placeholder components สำหรับหน้าที่ยังไม่ได้สร้าง
-const EventApprovalRequestsPage = () => <div>Event Approval Requests Page - coming soon</div>;
+
 const UserPermissionsPage = () => <div>User Permissions Page - coming soon</div>;
 const UserSuspensionPage = () => <div>User Suspension Page - coming soon</div>;
 const PopularActivitiesAdminPage = () => <div>Popular Activities Admin Page - coming soon</div>;
@@ -32,6 +33,7 @@ const adminRoutes: RouteObject[] = [
       </RoleBasedRoute>
     ),
   },
+ 
   // หน้าจัดการสิทธิ์ผู้ใช้
   {
     path: '/admin/user-permissions',

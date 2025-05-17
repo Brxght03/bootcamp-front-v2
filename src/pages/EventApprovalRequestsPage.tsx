@@ -452,6 +452,90 @@ function EventApprovalRequestsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className={`${getHeaderBarColor()} text-white`}>
               <tr>
+              <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents('title')}
+                >
+                  <div className="flex items-center">
+                    ชื่อกิจกรรม
+                    {sortField === 'title' && (
+                      <span className="ml-1">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents('eventType')}
+                >
+                  <div className="flex items-center">
+                    ประเภทกิจกรรม
+                    {sortField === 'eventType' && (
+                      <span className="ml-1">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents('startDate')}
+                >
+                  <div className="flex items-center">
+                    วันที่เริ่มต้น
+                    {sortField === 'startDate' && (
+                      <span className="ml-1">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents('endDate')}
+                >
+                  <div className="flex items-center">
+                    วันที่สิ้นสุด
+                    {sortField === 'endDate' && (
+                      <span className="ml-1">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents("requesterName")}
+                >
+                  <div className="flex items-center">
+                    ชื่อผู้ขออนุมัติ
+                    {sortField === "requesterName" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortEvents("requestDate")}
+                >
+                  <div className="flex items-center">
+                    วันที่สมัคร
+                    {sortField === "requestDate" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th
                   scope="col"
                   className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
@@ -659,88 +743,4 @@ function EventApprovalRequestsPage() {
   );
 }
 
-export default EventApprovalRequestsPage;"
-                  onClick={() => sortEvents('title')}
-                >
-                  <div className="flex items-center">
-                    ชื่อกิจกรรม
-                    {sortField === 'title' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
-                  onClick={() => sortEvents('eventType')}
-                >
-                  <div className="flex items-center">
-                    ประเภทกิจกรรม
-                    {sortField === 'eventType' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
-                  onClick={() => sortEvents('startDate')}
-                >
-                  <div className="flex items-center">
-                    วันที่เริ่มต้น
-                    {sortField === 'startDate' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
-                  onClick={() => sortEvents('endDate')}
-                >
-                  <div className="flex items-center">
-                    วันที่สิ้นสุด
-                    {sortField === 'endDate' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
-                  onClick={() => sortEvents('requesterName')}
-                >
-                  <div className="flex items-center">
-                    ชื่อผู้ขออนุมัติ
-                    {sortField === 'requesterName' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap"
-                  onClick={() => sortEvents('requestDate')}
-                >
-                  <div className="flex items-center">
-                    วันขออนุมัติ
-                    {sortField === 'requestDate' && (
-                      <span className="ml-1">
-                        {sortOrder === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium cursor-pointer whitespace-nowrap
+export default EventApprovalRequestsPage;
