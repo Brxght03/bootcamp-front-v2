@@ -84,7 +84,7 @@ function AppRoutes() {
       <div className="flex h-screen">
         {showSidebar && <Sidebar />}
         
-        <div className={`flex-1 overflow-y-auto ${showSidebar ? 'pl-64' : ''} ${isAuthenticated && !location.pathname.includes('/login') ? 'pt-16' : ''}`}>
+        <div className={`flex-1 overflow-y-auto ${isAuthenticated && !location.pathname.includes('/login') ? 'pt-16' : ''}`}>
           <Suspense fallback={<LoadingComponent />}>
             {element}
           </Suspense>
