@@ -1,14 +1,6 @@
 // src/hooks/useRegister.hook.tsx
 import { useState } from "react";
-import { register, RegisterPayload } from "../services/register";
-
-export interface RegisterResult {
-  message: string;
-  user: {
-    id: string;
-    studentId: string;
-  };
-}
+import { register, RegisterPayload, RegisterResult } from "../services/register";
 
 export const useRegister = () => {
   const [loading, setLoading] = useState(false);
@@ -18,7 +10,30 @@ export const useRegister = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Basic validation
+      if (userData.password !== userData.confirmPassword) {
+        setError('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน');
+        return null;
+      }
+      
+      if (userData.password.length < 6) {
+        setError('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+        return null;
+      }
+      
+      if (!/^\d{8}$/.test(userData.studentId)) {
+        setError('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
+        return null;
+      }
+
       const result = await register(userData);
+      
+      if (result.error) {
+        setError(result.error);
+        return null;
+      }
+      
       return result;
     } catch (err: any) {
       setError(

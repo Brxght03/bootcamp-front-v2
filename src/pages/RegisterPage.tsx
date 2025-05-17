@@ -1,21 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {useRegister} from '../hooks/useRegister.hook';
-
+import { useRegister } from '../hooks/useRegister.hook';
+import { useAuth } from '../hooks/UseAuth.hook';
 
 function RegisterPage() {
-  const navigate = useNavigate();
-  const { registerUser, loading, error } = useRegister();
-
-  // ซ่อน Navbar (ตอนนี้จัดการใน App.tsx แล้ว แต่ยังคงไว้เผื่อกรณีพิเศษ)
-  useEffect(() => {
-    document.body.classList.add('login-page');
-    return () => {
-      document.body.classList.remove('login-page');
-    };
-  }, []);
-
-  // สถานะสำหรับข้อมูลการสมัคร
   const [formData, setFormData] = useState({
     studentId: '',
     password: '',
@@ -27,394 +15,369 @@ function RegisterPage() {
     faculty: '',
     major: ''
   });
-
-  // สถานะสำหรับการแสดง/ซ่อนรหัสผ่าน
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // สถานะสำหรับการแสดงข้อความสำเร็จ
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { registerUser, loading, error } = useRegister();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  // ตัวเลือกสำหรับคณะ/วิทยาลัย
-  const faculties = [
-    "คณะวิทยาศาสตร์",
-    "คณะวิศวกรรมศาสตร์",
-    "คณะมนุษยศาสตร์และสังคมศาสตร์"
-  ];
+  // Hide Navbar on Register page
+  useEffect(() => {
+    document.body.classList.add('register-page');
+    return () => {
+      document.body.classList.remove('register-page');
+    };
+  }, []);
 
-  // ตัวเลือกสำหรับสาขาวิชา (อาจจะเปลี่ยนตามคณะที่เลือก)
-  const majors: Record<string, string[]> = {
-    "คณะวิทยาศาสตร์": ["วิทยาการคอมพิวเตอร์", "คณิตศาสตร์", "ฟิสิกส์"],
-    "คณะวิศวกรรมศาสตร์": ["วิศวกรรมคอมพิวเตอร์", "วิศวกรรมไฟฟ้า", "วิศวกรรมโยธา"],
-    "คณะมนุษยศาสตร์และสังคมศาสตร์": ["ภาษาอังกฤษ", "รัฐศาสตร์", "นิติศาสตร์"]
-  };
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
-  // ตัวเลือกสาขาวิชาที่จะแสดงให้ผู้ใช้ขึ้นกับคณะที่เลือก
-  const availableMajors = formData.faculty ? majors[formData.faculty] || [] : [];
-
-  // ฟังก์ชันสำหรับการอัปเดตข้อมูลฟอร์ม
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-
-    // รีเซ็ตสาขาเมื่อมีการเปลี่ยนคณะ
-    if (name === 'faculty') {
-      setFormData(prev => ({
-        ...prev,
-        major: ''
-      }));
-    }
-  };
-
-  // ฟังก์ชันสำหรับการสลับแสดง/ซ่อนรหัสผ่าน
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  // ฟังก์ชันสำหรับการสลับแสดง/ซ่อนยืนยันรหัสผ่าน
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
-
-  // ฟังก์ชันสำหรับการส่งฟอร์ม
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     
-    // ตรวจสอบข้อมูล
-    if (formData.password !== formData.confirmPassword) {
-      alert('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
-      return;
-    }
-
-    if (!/^\d{8}$/.test(formData.studentId)) {
-      alert('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
-      return;
-    }
-
-    try {
-      // เรียกใช้ API ลงทะเบียน
-      const result = await registerUser({
-        studentId: formData.studentId,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-        email: formData.email,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phoneNumber: formData.phoneNumber,
-        faculty: formData.faculty,
-        major: formData.major
+    // Clear error for this field when user changes it
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
       });
-
-      if (result) {
-        // แสดงข้อความสำเร็จ
-        setSuccessMessage('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ');
-        
-        // รอ 2 วินาทีแล้วนำทางไปยังหน้า login
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      }
-    } catch (err) {
-      console.error('เกิดข้อผิดพลาดในการลงทะเบียน:', err);
     }
   };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Required fields
+    if (!formData.studentId) newErrors.studentId = 'กรุณากรอกรหัสนิสิต';
+    else if (!/^\d{8}$/.test(formData.studentId)) 
+      newErrors.studentId = 'รหัสนิสิตต้องเป็นตัวเลข 8 หลัก';
+    
+    if (!formData.password) newErrors.password = 'กรุณากรอกรหัสผ่าน';
+    else if (formData.password.length < 6)
+      newErrors.password = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+    
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'กรุณายืนยันรหัสผ่าน';
+    else if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = 'รหัสผ่านไม่ตรงกัน';
+    
+    if (!formData.email) newErrors.email = 'กรุณากรอกอีเมล';
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+    
+    if (!formData.firstName) newErrors.firstName = 'กรุณากรอกชื่อ';
+    if (!formData.lastName) newErrors.lastName = 'กรุณากรอกนามสกุล';
+    
+    // Phone is optional, but validate format if provided
+    if (formData.phoneNumber && !/^\d{10}$/.test(formData.phoneNumber))
+      newErrors.phoneNumber = 'หมายเลขโทรศัพท์ต้องเป็นตัวเลข 10 หลัก';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMessage(null);
+    
+    if (validateForm()) {
+      try {
+        const result = await registerUser(formData);
+        
+        if (result) {
+          setSuccessMessage('ลงทะเบียนสำเร็จ! กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...');
+          
+          // Reset form
+          setFormData({
+            studentId: '',
+            password: '',
+            confirmPassword: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            phoneNumber: '',
+            faculty: '',
+            major: ''
+          });
+          
+          // Redirect to login page after a delay
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+      }
+    }
+  };
+
+  // List of faculties for dropdown
+  const faculties = [
+    'คณะเทคโนโลยีสารสนเทศและการสื่อสาร',
+    'คณะเกษตรศาสตร์และทรัพยากรธรรมชาติ',
+    'คณะวิทยาศาสตร์',
+    'คณะวิทยาศาสตร์การแพทย์',
+    'คณะวิศวกรรมศาสตร์',
+    'คณะพยาบาลศาสตร์'
+  ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center pt-4">
-      {/* ส่วนหัว - โลโก้และชื่อระบบ */}
-      <div className="flex items-center mb-4">
-        <img 
-          src="/logo.png" 
-          alt="ระบบจัดการงานอาสา" 
-          className="h-12 w-12"
-        />
-        <h1 className="text-lg font-bold text-gray-800 ml-2">ระบบจัดการงานอาสาและกิจกรรมมหาวิทยาลัย</h1>
-      </div>
-      
-      {/* ส่วนฟอร์มสมัครสมาชิก */}
-      <div className="w-full max-w-lg p-6 border-2 rounded-lg">
-        <h2 className="text-2xl font-bold text-center mb-2">สมัครสมาชิก</h2>
-        <p className="text-center text-gray-600 mb-6">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
+    <div className="min-h-screen flex">
+      {/* Left side - Register form */}
+      <div className="w-full md:w-1/2 lg:w-2/3 bg-white flex flex-col items-center py-4 px-6 overflow-y-auto">
+        {/* Header - Logo and system name */}
+        <div className="flex items-center mb-6">
+          <img 
+            src="/logo.png" 
+            alt="ระบบจัดการงานอาสา" 
+            className="h-12 w-12"
+          />
+          <h1 className="text-lg font-bold text-gray-800 ml-2">ระบบจัดการงานอาสาและกิจกรรมมหาวิทยาลัย</h1>
+        </div>
         
-        {/* แสดงข้อความสำเร็จ */}
-        {successMessage && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{successMessage}</span>
-          </div>
-        )}
-        
-        {/* แสดงข้อความผิดพลาด */}
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ชื่อและนามสกุล */}
-          <div className="flex items-center space-x-4">
-            <div className="w-1/2">
-              <label htmlFor="firstName" className="flex items-center mb-1 text-gray-700">
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-                <span className="text-sm font-medium">ชื่อ</span>
-              </label>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                value={formData.firstName}
-                onChange={handleChange}
-                placeholder="กรุณากรอกชื่อ"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
+        {/* Registration form */}
+        <div className="w-full max-w-2xl p-8 border-2 rounded-lg">
+          <h2 className="text-2xl font-bold text-center mb-2">สมัครสมาชิกใหม่</h2>
+          <p className="text-center text-gray-600 mb-6">กรอกข้อมูลเพื่อสร้างบัญชีนิสิต</p>
+          
+          {/* Success message */}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {successMessage}
             </div>
-            
-            {/* นามสกุล */}
-            <div className="w-1/2">
-              <label htmlFor="lastName" className="flex items-center mb-1 text-gray-700">
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
-                </svg>
-                <span className="text-sm font-medium">นามสกุล</span>
-              </label>
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                value={formData.lastName}
-                onChange={handleChange}
-                placeholder="กรุณากรอกนามสกุล"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
+          )}
+          
+          {/* Error from the hook */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
             </div>
-          </div>
-          
-          {/* รหัสนิสิต */}
-          <div>
-            <label htmlFor="studentId" className="flex items-center mb-1 text-gray-700">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
-              </svg>
-              <span className="text-sm font-medium">รหัสนิสิต</span>
-            </label>
-            <input
-              id="studentId"
-              name="studentId"
-              type="text"
-              value={formData.studentId}
-              onChange={handleChange}
-              placeholder="กรุณากรอกรหัสนิสิต 8 ตัว"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              maxLength={8}
-              required
-            />
-          </div>
-          
-          {/* อีเมล */}
-          <div>
-            <label htmlFor="email" className="flex items-center mb-1 text-gray-700">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-              <span className="text-sm font-medium">อีเมล</span>
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="กรุณากรอกอีเมล"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          {/* รหัสผ่าน */}
-          <div>
-            <label htmlFor="password" className="flex items-center mb-1 text-gray-700">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-              <span className="text-sm font-medium">รหัสผ่าน</span>
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="กรุณากรอกรหัสผ่าน"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-10"
-                required
-              />
-              <button 
-                type="button"
-                onClick={togglePasswordVisibility}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer"
-                aria-label="toggle password visibility"
-              >
-                {showPassword ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Student ID */}
+              <div className="col-span-1">
+                <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
+                  รหัสนิสิต <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="studentId"
+                  name="studentId"
+                  value={formData.studentId}
+                  onChange={handleChange}
+                  placeholder="กรอกรหัสนิสิต 8 หลัก"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.studentId ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                  maxLength={8}
+                />
+                {errors.studentId && (
+                  <p className="mt-1 text-sm text-red-500">{errors.studentId}</p>
                 )}
-              </button>
-            </div>
-          </div>
-          
-          {/* ยืนยันรหัสผ่าน */}
-          <div>
-            <label htmlFor="confirmPassword" className="flex items-center mb-1 text-gray-700">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-              </svg>
-              <span className="text-sm font-medium">ยืนยันรหัสผ่าน</span>
-            </label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="กรุณายืนยันรหัสผ่าน"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-10"
-                required
-              />
-              <button 
-                type="button"
-                onClick={toggleConfirmPasswordVisibility}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 cursor-pointer"
-                aria-label="toggle password visibility"
-              >
-                {showConfirmPassword ? (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                ) : (
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                  </svg>
+              </div>
+
+              {/* Email */}
+              <div className="col-span-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  อีเมล <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="example@up.ac.th"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                 )}
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* คณะ/วิทยาลัย */}
-            <div className="w-1/2">
-              <label htmlFor="faculty" className="flex items-center mb-1 text-gray-700">
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-                <span className="text-sm font-medium">คณะ/วิทยาลัย</span>
-              </label>
-              <div className="relative">
+              </div>
+
+              {/* Password */}
+              <div className="col-span-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  รหัสผ่าน <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="อย่างน้อย 6 ตัวอักษร"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.password ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="col-span-1">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="กรอกรหัสผ่านอีกครั้ง"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              {/* First Name */}
+              <div className="col-span-1">
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  ชื่อ <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="กรอกชื่อ"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.firstName ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+                )}
+              </div>
+
+              {/* Last Name */}
+              <div className="col-span-1">
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  นามสกุล <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="กรอกนามสกุล"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.lastName ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+                )}
+              </div>
+
+              {/* Phone Number */}
+              <div className="col-span-1">
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                  หมายเลขโทรศัพท์
+                </label>
+                <input
+                  type="text"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  placeholder="กรอกหมายเลขโทรศัพท์ 10 หลัก"
+                  className={`w-full px-3 py-2 border rounded-md ${
+                    errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                  maxLength={10}
+                />
+                {errors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                )}
+              </div>
+
+              {/* Faculty */}
+              <div className="col-span-1">
+                <label htmlFor="faculty" className="block text-sm font-medium text-gray-700 mb-1">
+                  คณะ
+                </label>
                 <select
                   id="faculty"
                   name="faculty"
                   value={formData.faculty}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
-                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="" disabled>กรุณาเลือกคณะหรือวิทยาลัย</option>
-                  {faculties.map((faculty, index) => (
-                    <option key={index} value={faculty}>{faculty}</option>
+                  <option value="">-- เลือกคณะ --</option>
+                  {faculties.map((faculty) => (
+                    <option key={faculty} value={faculty}>
+                      {faculty}
+                    </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
               </div>
-            </div>
-            
-            {/* สาขา */}
-            <div className="w-1/2">
-              <label htmlFor="major" className="flex items-center mb-1 text-gray-700">
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-                <span className="text-sm font-medium">สาขา</span>
-              </label>
-              <div className="relative">
-                <select
+
+              {/* Major */}
+              <div className="col-span-1">
+                <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-1">
+                  สาขาวิชา
+                </label>
+                <input
+                  type="text"
                   id="major"
                   name="major"
                   value={formData.major}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
-                  required
-                  disabled={!formData.faculty}
-                >
-                  <option value="" disabled>กรุณาเลือกสาขา</option>
-                  {availableMajors.map((major, index) => (
-                    <option key={index} value={major}>{major}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                  placeholder="กรอกสาขาวิชา"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
               </div>
             </div>
-          </div>
-          
-          {/* เบอร์โทรศัพท์ */}
-          <div>
-            <label htmlFor="phoneNumber" className="flex items-center mb-1 text-gray-700">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              <span className="text-sm font-medium">เบอร์โทรศัพท์</span>
-            </label>
-            <input
-              id="phoneNumber"
-              name="phoneNumber"
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="กรุณากรอกเบอร์โทรศัพท์"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          {/* ปุ่มสมัครสมาชิก */}
-          <button
-            type="submit"
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md mt-4"
-            disabled={loading}
-          >
-            {loading ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
-          </button>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              มีบัญชีอยู่แล้ว? <Link to="/login" className="text-blue-600 hover:underline">เข้าสู่ระบบ</Link>
-            </p>
-          </div>
-        </form>
+
+            <div className="mt-6 text-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-2 px-4 ${
+                  loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                } text-white font-medium rounded-md`}
+              >
+                {loading ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
+              </button>
+              
+              <div className="mt-4">
+                <p className="text-sm text-gray-600">
+                  มีบัญชีอยู่แล้ว? <Link to="/login" className="text-blue-600 hover:underline">เข้าสู่ระบบ</Link>
+                </p>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
+
+      {/* Right side - Blue background */}
+      <div className="hidden md:block md:w-1/2 lg:w-1/3 bg-blue-500"></div>
     </div>
   );
 }

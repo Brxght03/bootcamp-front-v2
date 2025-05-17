@@ -1,5 +1,6 @@
-import { Navigate, useLocation } from 'react-router-dom';
+// src/core/guards/RoleBasedRoute.tsx
 import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/UseAuth.hook';
 import { UserRole } from '../../stores/auth.store';
 
@@ -9,26 +10,33 @@ interface RoleBasedRouteProps {
 }
 
 /**
- * คอมโพเนนต์สำหรับการป้องกันเส้นทางตามบทบาทของผู้ใช้
- * ตรวจสอบว่าผู้ใช้มีสิทธิ์เข้าถึงเส้นทางหรือไม่ โดยตรวจสอบจากบทบาทที่อนุญาต
+ * A route guard that checks if the user has the required role
+ * @param children - The content to render if authorized
+ * @param allowedRoles - Array of roles that are allowed to access the route
+ * @returns The children if authorized, otherwise redirects to appropriate page
  */
-function RoleBasedRoute({ children, allowedRoles }: RoleBasedRouteProps) {
+const RoleBasedRoute = ({ children, allowedRoles }: RoleBasedRouteProps) => {
   const { isAuthenticated, userRole } = useAuth();
-  const location = useLocation();
-
-  // ตรวจสอบว่าผู้ใช้ล็อกอินแล้วหรือไม่
+  
+  // If not authenticated at all, redirect to login
   if (!isAuthenticated) {
-    // เปลี่ยนเส้นทางไปยังหน้าล็อกอิน และบันทึกเส้นทางที่พยายามเข้าถึง
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
-
-  // ตรวจสอบว่าผู้ใช้มีบทบาทที่อนุญาตหรือไม่
+  
+  // If user has a role and it's allowed, show the content
   if (userRole && allowedRoles.includes(userRole)) {
     return <>{children}</>;
   }
-
-  // ถ้าผู้ใช้ไม่มีสิทธิ์ เปลี่ยนเส้นทางไปยังหน้าแรก
-  return <Navigate to="/" replace />;
-}
+  
+  // Otherwise redirect based on role
+  if (userRole === 'admin') {
+    return <Navigate to="/admin" replace />;
+  } else if (userRole === 'staff') {
+    return <Navigate to="/staff-dashboard" replace />;
+  } else {
+    // Regular student or unknown role
+    return <Navigate to="/" replace />;
+  }
+};
 
 export default RoleBasedRoute;

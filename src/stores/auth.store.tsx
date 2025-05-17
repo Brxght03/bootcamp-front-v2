@@ -2,16 +2,32 @@ import { createContext, useEffect, useState, ReactNode } from 'react';
 
 const LOCAL_STORAGE_KEY = 'authData';
 
-// กำหนดประเภทของบทบาทผู้ใช้
+// Define user role types
 export type UserRole = 'student' | 'staff' | 'admin';
+
+interface UserData {
+  id: string;
+  studentId: string;
+  role: UserRole;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+interface AuthData {
+  user: UserData;
+  token: string;
+}
 
 interface AuthStateProps {
   isAuthenticated: boolean;
   userRole: UserRole | null;
   userId: string | null;
-  login: (userId?: string, role?: UserRole) => void;
+  studentId: string | null;
+  userData: UserData | null;
+  login: (userData: UserData, token: string) => void;
   logout: () => void;
-  checkAuth: () => boolean; // เพิ่มฟังก์ชันตรวจสอบสถานะการล็อกอิน
+  checkAuth: () => boolean;
 }
 
 export const AuthStore = createContext<AuthStateProps | undefined>(undefined);
@@ -20,25 +36,27 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  // ฟังก์ชันตรวจสอบสถานะการล็อกอินจาก localStorage
+  // Check authentication status from localStorage
   const checkAuth = (): boolean => {
     try {
       const storedAuth = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (storedAuth) {
-        const authData = JSON.parse(storedAuth);
+        const authData: AuthData = JSON.parse(storedAuth);
         
-        // ตรวจสอบว่าข้อมูลถูกต้องหรือไม่
-        if (authData && (authData.userId || authData.role)) {
+        if (authData && authData.user && authData.token) {
           setIsAuthenticated(true);
-          setUserRole(authData.role || 'student');
-          setUserId(authData.userId || null);
+          setUserRole(authData.user.role);
+          setUserId(authData.user.id);
+          setStudentId(authData.user.studentId);
+          setUserData(authData.user);
           return true;
         }
       }
       return false;
     } catch (e) {
-      // หากการแปลง JSON ล้มเหลว ให้ลบข้อมูลใน localStorage
       console.error("Error checking auth state:", e);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return false;
@@ -46,40 +64,24 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // ดึงข้อมูลการล็อกอินจาก localStorage เมื่อโหลดแอป
+    // Load auth data on application start
     checkAuth();
   }, []);
 
-  const login = (userId = '', role?: UserRole) => {
-    console.log('Login with userId:', userId);
-    
-    // จำลองตรวจสอบบทบาทตามรหัสนิสิต
-    // สำหรับการทดสอบ: 
-    // รหัสนิสิตที่ขึ้นต้นด้วย '2' จะเป็นเจ้าหน้าที่ (staff)
-    // รหัสนิสิตที่ขึ้นต้นด้วย '1' จะเป็นแอดมิน (admin)
-    // รหัสนิสิตอื่นๆ เป็นนิสิตทั่วไป (student)
-    
-    let userRole: UserRole = 'student';
-    
-    if (role) {
-      // ถ้ามีการระบุบทบาทมาโดยตรง ให้ใช้ค่านั้น
-      userRole = role;
-    } else if (userId.startsWith('2')) {
-      userRole = 'staff';
-      console.log('Detected staff role from ID');
-    } else if (userId.startsWith('1')) {
-      userRole = 'admin';
-      console.log('Detected admin role from ID');
-    }
-    
-    console.log('Setting user role to:', userRole);
+  const login = (user: UserData, token: string) => {
+    console.log('Login with user:', user);
     
     setIsAuthenticated(true);
-    setUserRole(userRole);
-    setUserId(userId);
+    setUserRole(user.role);
+    setUserId(user.id);
+    setStudentId(user.studentId);
+    setUserData(user);
     
-    // บันทึกข้อมูลการล็อกอินใน localStorage
-    const authData = { userId, role: userRole };
+    // Save auth data to localStorage
+    const authData: AuthData = { 
+      user,
+      token 
+    };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(authData));
   };
 
@@ -87,11 +89,22 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setUserRole(null);
     setUserId(null);
+    setStudentId(null);
+    setUserData(null);
     localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
   return (
-    <AuthStore.Provider value={{ isAuthenticated, userRole, userId, login, logout, checkAuth }}>
+    <AuthStore.Provider value={{ 
+      isAuthenticated, 
+      userRole, 
+      userId, 
+      studentId,
+      userData,
+      login, 
+      logout, 
+      checkAuth 
+    }}>
       {children}
     </AuthStore.Provider>
   );
