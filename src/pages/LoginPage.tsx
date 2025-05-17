@@ -79,9 +79,9 @@ function LoginPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex justify-center bg-white">
       {/* Left side - Login form */}
-      <div className="w-full md:w-1/2 lg:w-1/3 bg-white flex flex-col items-center justify-start pt-4">
+      <div className="w-full md:w-1/2 lg:w-1/3 flex flex-col items-center justify-start pt-4">
         {/* Header - Logo and system name */}
         <div className="flex items-center mb-8">
           <img 
@@ -205,9 +205,6 @@ function LoginPage() {
           <p className="text-xs text-blue-600 mt-2">*หมายเหตุ: รหัสผ่านสามารถใส่ค่าใดก็ได้สำหรับการทดสอบ หรือใช้บัญชีที่ลงทะเบียนไว้</p>
         </div>
       </div>
-
-      {/* Right side - Blue background */}
-      <div className="hidden md:block md:w-1/2 lg:w-2/3 bg-blue-500"></div>
     </div>
   );
 }
