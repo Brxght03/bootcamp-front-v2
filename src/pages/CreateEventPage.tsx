@@ -2,6 +2,13 @@ import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../stores/theme.store';
 import React from 'react';
+import useEvent from '../hooks/useEvent.hook';
+import {
+  formatDateToRFC3339,
+  eventTypeToTypeId,
+  typeIdToEventType
+} from '../services/eventService';
+import { useAuth } from '../hooks/UseAuth.hook';
 
 // ประเภทของกิจกรรม
 type EventType = 'อบรม' | 'อาสา' | 'ช่วยงาน';
@@ -13,6 +20,8 @@ interface EventFormData {
   description: string;
   startDate: string;
   endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   maxParticipants: number;
   score: number;
@@ -24,6 +33,8 @@ interface EventFormData {
 function CreateEventPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { userId } = useAuth();
+  const { createNewEvent, error: apiError, loading: isSubmitting } = useEvent();
   
   // state สำหรับจัดการข้อมูลฟอร์ม
   const [formData, setFormData] = useState<EventFormData>({
@@ -32,6 +43,8 @@ function CreateEventPage() {
     description: '',
     startDate: '',
     endDate: '',
+    startTime: '08:00',
+    endTime: '16:00',
     location: '',
     maxParticipants: 0,
     score: 0,
@@ -42,7 +55,7 @@ function CreateEventPage() {
   
   // state สำหรับจัดการข้อผิดพลาด
   const [errors, setErrors] = useState<Partial<Record<keyof EventFormData, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // จัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -148,11 +161,6 @@ function CreateEventPage() {
       newErrors.hours = 'จำนวนชั่วโมงต้องมากกว่า 0';
     }
     
-    // ตรวจสอบรูปภาพ
-    if (!formData.image) {
-      newErrors.image = 'กรุณาอัปโหลดรูปภาพกิจกรรม';
-    }
-    
     setErrors(newErrors);
     
     // ถ้าไม่มีข้อผิดพลาด (ค่าความยาวของ Object.keys(newErrors) เป็น 0) จะคืนค่า true
@@ -160,7 +168,7 @@ function CreateEventPage() {
   };
   
   // จัดการการส่งฟอร์ม
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // ตรวจสอบความถูกต้องของฟอร์ม
@@ -168,20 +176,34 @@ function CreateEventPage() {
       return;
     }
     
-    setIsSubmitting(true);
-    
-    // จำลองการส่งข้อมูลไปยัง API
-    setTimeout(() => {
-      console.log('ข้อมูลที่ส่ง:', formData);
+    try {
+      // แปลงข้อมูลจากฟอร์มให้ตรงกับรูปแบบที่ API ต้องการ
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        typeId: eventTypeToTypeId(formData.eventType),
+        location: formData.location,
+        startTime: formatDateToRFC3339(formData.startDate, formData.startTime),
+        endTime: formatDateToRFC3339(formData.endDate, formData.endTime),
+        maxParticipants: formData.maxParticipants,
+        imageUrl: formData.previewImage || '' // ในกรณีจริงควรอัพโหลดรูปภาพไปยังเซิร์ฟเวอร์ก่อนและใช้ URL ที่ได้รับ
+      };
       
-      // แสดงข้อความแจ้งเตือนเมื่อส่งสำเร็จ
-      alert('ส่งคำขอสร้างกิจกรรมสำเร็จ! รอการอนุมัติจากผู้ดูแลระบบ');
+      // เรียกใช้ API สร้างกิจกรรมใหม่
+      const result = await createNewEvent(eventData);
       
-      // นำทางกลับไปหน้าแดชบอร์ด
-      navigate('/staff-dashboard');
-      
-      setIsSubmitting(false);
-    }, 1000);
+      if (result) {
+        // แสดงข้อความแจ้งเตือนเมื่อสร้างกิจกรรมสำเร็จ
+        setSuccessMessage('ส่งคำขอสร้างกิจกรรมสำเร็จ! รอการอนุมัติจากผู้ดูแลระบบ');
+        
+        // รอ 2 วินาทีแล้วนำทางกลับไปหน้าแดชบอร์ด
+        setTimeout(() => {
+          navigate('/staff-dashboard');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาดในการสร้างกิจกรรม:', error);
+    }
   };
   
   // ฟังก์ชันสำหรับการจัดรูปแบบวันที่ (DD/MM/YYYY)
@@ -213,7 +235,8 @@ function CreateEventPage() {
     // แปลงรูปแบบจาก YYYY-MM-DD เป็น DD/MM/YYYY
     if (value) {
       const [year, month, day] = value.split('-');
-      const formattedDate = `${day}/${month}/${year}`;
+      const thaiYear = parseInt(year) + 543; // แปลงเป็น พ.ศ.
+      const formattedDate = `${day}/${month}/${thaiYear}`;
       
       setFormData(prev => ({
         ...prev,

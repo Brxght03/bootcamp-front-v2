@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/UseAuth.hook';
+import { loginApi, useAuth } from '../hooks/UseAuth.hook';
+import axios from 'axios';
 
 
 function LoginPage() {
@@ -20,9 +21,9 @@ function LoginPage() {
   }, []);
 
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // ตรวจสอบความถูกต้องของข้อมูล
     if (!/^\d{8}$/.test(studentId)) {
       alert('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
@@ -35,48 +36,44 @@ function LoginPage() {
     }
 
     // เรียกใช้ login จาก auth store
-    login(studentId);
-    
-    // นำทางตามบทบาท
-    if (studentId.startsWith('1')) {
-      navigate('/admin');
-    } else if (studentId.startsWith('2')) {
-      navigate('/staff-dashboard');
-    } else {
-      navigate('/');
+    const result = await loginApi({ studentId, password });
+
+    console.log(result);
+
+    if (result.error) {
+      alert('เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง');
+      return;
     }
+
+    // บันทึกข้อมูลผู้ใช้ใน localStorage
+    localStorage.setItem('token', JSON.stringify(result.tokens.accessToken));
+    // นำทางตามบทบาท
+
+    switch (result.user.role) {
+      case 'admin':
+        console.log('Admin role detected');
+        break;
+      case 'staff':
+        navigate('/staff-dashboard');
+        break;
+      case 'student':
+        navigate('/');
+        break;
+      default:
+        alert('บทบาทผู้ใช้ไม่ถูกต้อง');
+        break;
+    }
+    // if (result.user.role === 'admin') {
+    //   navigate('/admin');
+    // } else if (result.user.role === 'staff') {
+    //   navigate('/staff-dashboard');
+    // } else {
+    //   navigate('/');
+    // }
   };
   
 
-  /*
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
-    if (!/^\d{8}$/.test(studentId)) {
-      alert('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
-      return;
-    }
-  
-    if (!password) {
-      alert('กรุณากรอกรหัสผ่าน');
-      return;
-    }
-  
-    try {
-      const result = await login(studentId, password); // เรียก API จริง
-  
-      if (studentId.startsWith('1')) {
-        navigate('/admin');
-      } else if (studentId.startsWith('2')) {
-        navigate('/staff-dashboard');
-      } else {
-        navigate('/');
-      }
-    } catch (error) {
-      alert('เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง');
-    }
-  };
-  */
+ 
 
   // ฟังก์ชันสลับการแสดง/ซ่อนรหัสผ่าน
   const togglePasswordVisibility = () => {

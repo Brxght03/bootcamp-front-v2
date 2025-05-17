@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import {useRegister} from '../hooks/useRegister.hook';
+
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { registerUser, loading, error } = useRegister();
 
   // ซ่อน Navbar (ตอนนี้จัดการใน App.tsx แล้ว แต่ยังคงไว้เผื่อกรณีพิเศษ)
   useEffect(() => {
@@ -14,19 +17,23 @@ function RegisterPage() {
 
   // สถานะสำหรับข้อมูลการสมัคร
   const [formData, setFormData] = useState({
-    username: '',
     studentId: '',
-    email: '',
     password: '',
     confirmPassword: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
     faculty: '',
-    major: '',
-    phone: ''
+    major: ''
   });
 
   // สถานะสำหรับการแสดง/ซ่อนรหัสผ่าน
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // สถานะสำหรับการแสดงข้อความสำเร็จ
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // ตัวเลือกสำหรับคณะ/วิทยาลัย
   const faculties = [
@@ -73,7 +80,7 @@ function RegisterPage() {
   };
 
   // ฟังก์ชันสำหรับการส่งฟอร์ม
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // ตรวจสอบข้อมูล
@@ -87,11 +94,32 @@ function RegisterPage() {
       return;
     }
 
-    // ในโค้ดจริงจะมีการส่งข้อมูลไปยัง API
-    console.log('ข้อมูลที่ส่ง:', formData);
-    
-    // นำทางกลับไปยังหน้า login
-    navigate('/login');
+    try {
+      // เรียกใช้ API ลงทะเบียน
+      const result = await registerUser({
+        studentId: formData.studentId,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        faculty: formData.faculty,
+        major: formData.major
+      });
+
+      if (result) {
+        // แสดงข้อความสำเร็จ
+        setSuccessMessage('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ');
+        
+        // รอ 2 วินาทีแล้วนำทางไปยังหน้า login
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการลงทะเบียน:', err);
+    }
   };
 
   return (
@@ -111,49 +139,83 @@ function RegisterPage() {
         <h2 className="text-2xl font-bold text-center mb-2">สมัครสมาชิก</h2>
         <p className="text-center text-gray-600 mb-6">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
         
+        {/* แสดงข้อความสำเร็จ */}
+        {successMessage && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{successMessage}</span>
+          </div>
+        )}
+        
+        {/* แสดงข้อความผิดพลาด */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ชื่อผู้ใช้ */}
+          {/* ชื่อและนามสกุล */}
           <div className="flex items-center space-x-4">
             <div className="w-1/2">
-              <label htmlFor="username" className="flex items-center mb-1 text-gray-700">
+              <label htmlFor="firstName" className="flex items-center mb-1 text-gray-700">
                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
-                <span className="text-sm font-medium">ชื่อผู้ใช้</span>
+                <span className="text-sm font-medium">ชื่อ</span>
               </label>
               <input
-                id="username"
-                name="username"
+                id="firstName"
+                name="firstName"
                 type="text"
-                value={formData.username}
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="กรุณากรอกชื่อผู้ใช้"
+                placeholder="กรุณากรอกชื่อ"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 required
               />
             </div>
             
-            {/* รหัสนิสิต */}
+            {/* นามสกุล */}
             <div className="w-1/2">
-              <label htmlFor="studentId" className="flex items-center mb-1 text-gray-700">
+              <label htmlFor="lastName" className="flex items-center mb-1 text-gray-700">
                 <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
                 </svg>
-                <span className="text-sm font-medium">รหัสนิสิต</span>
+                <span className="text-sm font-medium">นามสกุล</span>
               </label>
               <input
-                id="studentId"
-                name="studentId"
+                id="lastName"
+                name="lastName"
                 type="text"
-                value={formData.studentId}
+                value={formData.lastName}
                 onChange={handleChange}
-                placeholder="กรุณากรอกรหัสนิสิต 8 ตัว"
+                placeholder="กรุณากรอกนามสกุล"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                maxLength={8}
                 required
               />
             </div>
+          </div>
+          
+          {/* รหัสนิสิต */}
+          <div>
+            <label htmlFor="studentId" className="flex items-center mb-1 text-gray-700">
+              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+              </svg>
+              <span className="text-sm font-medium">รหัสนิสิต</span>
+            </label>
+            <input
+              id="studentId"
+              name="studentId"
+              type="text"
+              value={formData.studentId}
+              onChange={handleChange}
+              placeholder="กรุณากรอกรหัสนิสิต 8 ตัว"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              maxLength={8}
+              required
+            />
           </div>
           
           {/* อีเมล */}
@@ -319,17 +381,17 @@ function RegisterPage() {
           
           {/* เบอร์โทรศัพท์ */}
           <div>
-            <label htmlFor="phone" className="flex items-center mb-1 text-gray-700">
+            <label htmlFor="phoneNumber" className="flex items-center mb-1 text-gray-700">
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
               </svg>
               <span className="text-sm font-medium">เบอร์โทรศัพท์</span>
             </label>
             <input
-              id="phone"
-              name="phone"
+              id="phoneNumber"
+              name="phoneNumber"
               type="tel"
-              value={formData.phone}
+              value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="กรุณากรอกเบอร์โทรศัพท์"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -341,8 +403,9 @@ function RegisterPage() {
           <button
             type="submit"
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md mt-4"
+            disabled={loading}
           >
-            สมัครสมาชิก
+            {loading ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
           </button>
           
           <div className="text-center mt-4">
