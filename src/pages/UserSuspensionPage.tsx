@@ -1,30 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../stores/theme.store';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-// ประเภทข้อมูลสำหรับผู้ใช้
+// ประเภทข้อมูลสำหรับผู้ใช้งาน
 interface UserItem {
   id: string;
   name: string;
   studentId: string;
+  role: 'นิสิต' | 'เจ้าหน้าที่';
   faculty: string;
+  major: string;
+  lastLoginDate: string;
   email: string;
-  isStaff: boolean;
+  isSuspended: boolean;
 }
 
 // ประเภทสำหรับการเรียงข้อมูล
-type SortField = 'name' | 'studentId' | 'faculty' | 'email' | 'isStaff';
+type SortField = 'name' | 'studentId' | 'role' | 'faculty' | 'major' | 'lastLoginDate' | 'isSuspended';
 type SortOrder = 'asc' | 'desc';
 
-function UserPermissionsPage() {
+function UserSuspensionPage() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+
   const [users, setUsers] = useState<UserItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [itemsPerPage] = useState(10);
+  const [sortField, setSortField] = useState<SortField>('lastLoginDate');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStaff, setFilterStaff] = useState<string>('');
+  const [filterRole, setFilterRole] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
 
   useEffect(() => {
     // ข้อมูลตัวอย่าง (ในโปรเจคจริง ควรใช้ API เพื่อดึงข้อมูล)
@@ -33,82 +39,167 @@ function UserPermissionsPage() {
         id: '1',
         name: 'นายสมชาย ใจดี',
         studentId: '65015001',
+        role: 'นิสิต',
         faculty: 'คณะวิทยาศาสตร์',
+        major: 'วิทยาการคอมพิวเตอร์',
+        lastLoginDate: '17/05/2568',
         email: '65015001@up.ac.th',
-        isStaff: false,
+        isSuspended: false
       },
       {
         id: '2',
         name: 'นางสาวสมหญิง รักเรียน',
         studentId: '65015002',
+        role: 'นิสิต',
         faculty: 'คณะวิศวกรรมศาสตร์',
+        major: 'วิศวกรรมคอมพิวเตอร์',
+        lastLoginDate: '16/05/2568',
         email: '65015002@up.ac.th',
-        isStaff: true,
+        isSuspended: true
       },
       {
         id: '3',
         name: 'นายวิชัย เก่งกาจ',
         studentId: '65015003',
+        role: 'นิสิต',
         faculty: 'คณะวิทยาศาสตร์',
+        major: 'ฟิสิกส์',
+        lastLoginDate: '15/05/2568',
         email: '65015003@up.ac.th',
-        isStaff: false,
+        isSuspended: false
       },
       {
         id: '4',
-        name: 'นางสาวแก้วตา สว่างศรี',
-        studentId: '65015004',
-        faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
-        email: '65015004@up.ac.th',
-        isStaff: true,
+        name: 'นายพงศกร มหาศาล',
+        studentId: '26015001',
+        role: 'เจ้าหน้าที่',
+        faculty: 'คณะวิศวกรรมศาสตร์',
+        major: 'วิศวกรรมไฟฟ้า',
+        lastLoginDate: '16/05/2568',
+        email: '26015001@up.ac.th',
+        isSuspended: false
       },
       {
         id: '5',
-        name: 'นายภูมิ ปัญญาดี',
-        studentId: '65015005',
-        faculty: 'คณะวิศวกรรมศาสตร์',
-        email: '65015005@up.ac.th',
-        isStaff: false,
+        name: 'นางสาวพิมพ์ใจ ดีงาม',
+        studentId: '26015002',
+        role: 'เจ้าหน้าที่',
+        faculty: 'คณะวิทยาศาสตร์',
+        major: 'เคมี',
+        lastLoginDate: '14/05/2568',
+        email: '26015002@up.ac.th',
+        isSuspended: true
       },
       {
         id: '6',
-        name: 'นางสาวนิภา ใจงาม',
+        name: 'นายอนันต์ มากมี',
         studentId: '65015006',
-        faculty: 'คณะวิทยาศาสตร์',
+        role: 'นิสิต',
+        faculty: 'คณะวิศวกรรมศาสตร์',
+        major: 'วิศวกรรมโยธา',
+        lastLoginDate: '13/05/2568',
         email: '65015006@up.ac.th',
-        isStaff: true,
+        isSuspended: false
       },
       {
         id: '7',
-        name: 'นายอนันต์ มากมี',
+        name: 'นางสาวกานดา รักดี',
         studentId: '65015007',
-        faculty: 'คณะวิศวกรรมศาสตร์',
+        role: 'นิสิต',
+        faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
+        major: 'รัฐศาสตร์',
+        lastLoginDate: '12/05/2568',
         email: '65015007@up.ac.th',
-        isStaff: false,
+        isSuspended: false
       },
       {
         id: '8',
-        name: 'นางสาวกานดา รักดี',
+        name: 'นายพงศกร เพียรเรียน',
         studentId: '65015008',
+        role: 'นิสิต',
         faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
+        major: 'นิติศาสตร์',
+        lastLoginDate: '11/05/2568',
         email: '65015008@up.ac.th',
-        isStaff: false,
+        isSuspended: false
       },
       {
         id: '9',
-        name: 'นายพงศกร เพียรเรียน',
+        name: 'นางสาวมินตรา ใจซื่อ',
         studentId: '65015009',
-        faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
+        role: 'นิสิต',
+        faculty: 'คณะวิทยาศาสตร์',
+        major: 'วิทยาการคอมพิวเตอร์',
+        lastLoginDate: '10/05/2568',
         email: '65015009@up.ac.th',
-        isStaff: true,
+        isSuspended: false
       },
       {
         id: '10',
-        name: 'นางสาวมินตรา ใจซื่อ',
+        name: 'นายธนกร รวยทรัพย์',
         studentId: '65015010',
-        faculty: 'คณะวิทยาศาสตร์',
+        role: 'นิสิต',
+        faculty: 'คณะวิศวกรรมศาสตร์',
+        major: 'วิศวกรรมคอมพิวเตอร์',
+        lastLoginDate: '09/05/2568',
         email: '65015010@up.ac.th',
-        isStaff: false,
+        isSuspended: false
       },
+      {
+        id: '11',
+        name: 'นางสาววรรณิกา รักธรรม',
+        studentId: '65015011',
+        role: 'นิสิต',
+        faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
+        major: 'ภาษาอังกฤษ',
+        lastLoginDate: '08/05/2568',
+        email: '65015011@up.ac.th',
+        isSuspended: false
+      },
+      {
+        id: '12',
+        name: 'นายพีรพล เรียนดี',
+        studentId: '65015012',
+        role: 'นิสิต',
+        faculty: 'คณะวิทยาศาสตร์',
+        major: 'ฟิสิกส์',
+        lastLoginDate: '07/05/2568',
+        email: '65015012@up.ac.th',
+        isSuspended: false
+      },
+      {
+        id: '13',
+        name: 'นางสาวพนิดา งามพริ้ง',
+        studentId: '26015003',
+        role: 'เจ้าหน้าที่',
+        faculty: 'คณะวิศวกรรมศาสตร์',
+        major: 'วิศวกรรมไฟฟ้า',
+        lastLoginDate: '06/05/2568',
+        email: '26015003@up.ac.th',
+        isSuspended: false
+      },
+      {
+        id: '14',
+        name: 'นายณัฐพล ศรีสุวรรณ',
+        studentId: '26015004',
+        role: 'เจ้าหน้าที่',
+        faculty: 'คณะวิทยาศาสตร์',
+        major: 'คณิตศาสตร์',
+        lastLoginDate: '05/05/2568',
+        email: '26015004@up.ac.th',
+        isSuspended: false
+      },
+      {
+        id: '15',
+        name: 'นางสาวนุชนาถ จิตใส',
+        studentId: '26015005',
+        role: 'เจ้าหน้าที่',
+        faculty: 'คณะมนุษยศาสตร์และสังคมศาสตร์',
+        major: 'ภาษาอังกฤษ',
+        lastLoginDate: '04/05/2568',
+        email: '26015005@up.ac.th',
+        isSuspended: false
+      }
     ];
 
     setUsers(sampleUsers);
@@ -126,24 +217,18 @@ function UserPermissionsPage() {
     }
   };
 
-  // ฟังก์ชันจัดการการแต่งตั้ง staff
-  const handleAppoint = (id: string) => {
-    const confirmed = window.confirm('คุณต้องการแต่งตั้งผู้ใช้นี้เป็นเจ้าหน้าที่ใช่หรือไม่?');
-    if (confirmed) {
-      setUsers(users.map(user => 
-        user.id === id ? { ...user, isStaff: true } : user
-      ));
-    }
+  // ฟังก์ชันจัดการการระงับบัญชี
+  const handleSuspendUser = (id: string) => {
+    setUsers(users.map(user => 
+      user.id === id ? { ...user, isSuspended: true } : user
+    ));
   };
 
-  // ฟังก์ชันจัดการการยกเลิก staff
-  const handleRevoke = (id: string) => {
-    const confirmed = window.confirm('คุณต้องการยกเลิกตำแหน่งเจ้าหน้าที่ของผู้ใช้นี้ใช่หรือไม่?');
-    if (confirmed) {
-      setUsers(users.map(user => 
-        user.id === id ? { ...user, isStaff: false } : user
-      ));
-    }
+  // ฟังก์ชันจัดการการยกเลิกระงับบัญชี
+  const handleUnsuspendUser = (id: string) => {
+    setUsers(users.map(user => 
+      user.id === id ? { ...user, isSuspended: false } : user
+    ));
   };
 
   // กรองและเรียงข้อมูล
@@ -151,21 +236,18 @@ function UserPermissionsPage() {
     .filter(user => 
       (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
        user.studentId.includes(searchTerm) ||
-       user.faculty.toLowerCase().includes(searchTerm.toLowerCase()) ||
        user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (filterStaff === '' || 
-        (filterStaff === 'staff' && user.isStaff) || 
-        (filterStaff === 'user' && !user.isStaff))
+      (filterRole === '' || user.role === filterRole) &&
+      (filterStatus === '' || 
+       (filterStatus === 'ระงับแล้ว' && user.isSuspended) || 
+       (filterStatus === 'ปกติ' && !user.isSuspended))
     )
     .sort((a, b) => {
-      // เรียงตามฟิลด์ที่เลือก
-      if (sortField === 'isStaff') {
-        // สำหรับการเรียงตามสถานะ Staff
-        if (sortOrder === 'asc') {
-          return a.isStaff === b.isStaff ? 0 : a.isStaff ? 1 : -1;
-        } else {
-          return a.isStaff === b.isStaff ? 0 : a.isStaff ? -1 : 1;
-        }
+      if (sortField === 'isSuspended') {
+        // สำหรับการเรียงตามสถานะการระงับ
+        return sortOrder === 'asc' 
+          ? (a.isSuspended === b.isSuspended ? 0 : a.isSuspended ? 1 : -1) 
+          : (a.isSuspended === b.isSuspended ? 0 : a.isSuspended ? -1 : 1);
       } else {
         // สำหรับฟิลด์อื่นๆ
         const compareA = String(a[sortField]).toLowerCase();
@@ -197,11 +279,11 @@ function UserPermissionsPage() {
   return (
     <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-800'}`}>
       <div className="container mx-auto">
-        <h1 className="text-2xl font-bold mb-6">จัดการสิทธิ์ผู้ใช้</h1>
+        <h1 className="text-2xl font-bold mb-6">ระบบระงับบัญชีผู้ใช้</h1>
         
         {/* ส่วนค้นหาและตัวกรอง */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-grow">
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
             <input
               type="text"
               placeholder="ค้นหาผู้ใช้..."
@@ -224,24 +306,43 @@ function UserPermissionsPage() {
               </svg>
             </div>
           </div>
-          <div className="sm:w-48">
+          
+          {/* ตัวกรองบทบาท */}
+          <div>
             <select
-              value={filterStaff}
-              onChange={(e) => setFilterStaff(e.target.value)}
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
               className={`w-full px-4 py-2 rounded-md ${
                 theme === 'dark' 
                   ? 'bg-gray-800 border-gray-700 text-white' 
                   : 'bg-white border-gray-300 text-gray-900'
               } border`}
             >
-              <option value="">ทั้งหมด</option>
-              <option value="staff">เจ้าหน้าที่</option>
-              <option value="user">นิสิต</option>
+              <option value="">ทุกบทบาท</option>
+              <option value="นิสิต">นิสิต</option>
+              <option value="เจ้าหน้าที่">เจ้าหน้าที่</option>
+            </select>
+          </div>
+          
+          {/* ตัวกรองสถานะ */}
+          <div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={`w-full px-4 py-2 rounded-md ${
+                theme === 'dark' 
+                  ? 'bg-gray-800 border-gray-700 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              } border`}
+            >
+              <option value="">ทุกสถานะ</option>
+              <option value="ปกติ">ปกติ</option>
+              <option value="ระงับแล้ว">ระงับแล้ว</option>
             </select>
           </div>
         </div>
         
-        {/* ตารางผู้ใช้ */}
+        {/* ตารางผู้ใช้งาน */}
         <div className={`overflow-x-auto rounded-lg border ${
           theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
         }`}>
@@ -268,8 +369,22 @@ function UserPermissionsPage() {
                   onClick={() => sortUsers('studentId')}
                 >
                   <div className="flex items-center">
-                    รหัสนิสิต
+                    รหัสประจำตัว
                     {sortField === 'studentId' && (
+                      <span className="ml-1">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
+                  onClick={() => sortUsers('role')}
+                >
+                  <div className="flex items-center">
+                    บทบาท
+                    {sortField === 'role' && (
                       <span className="ml-1">
                         {sortOrder === 'asc' ? '↑' : '↓'}
                       </span>
@@ -293,11 +408,11 @@ function UserPermissionsPage() {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
-                  onClick={() => sortUsers('email')}
+                  onClick={() => sortUsers('lastLoginDate')}
                 >
                   <div className="flex items-center">
-                    อีเมล
-                    {sortField === 'email' && (
+                    เข้าสู่ระบบล่าสุด
+                    {sortField === 'lastLoginDate' && (
                       <span className="ml-1">
                         {sortOrder === 'asc' ? '↑' : '↓'}
                       </span>
@@ -307,11 +422,11 @@ function UserPermissionsPage() {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-sm font-medium cursor-pointer"
-                  onClick={() => sortUsers('isStaff')}
+                  onClick={() => sortUsers('isSuspended')}
                 >
                   <div className="flex items-center">
-                    สถานะ Staff
-                    {sortField === 'isStaff' && (
+                    สถานะ
+                    {sortField === 'isSuspended' && (
                       <span className="ml-1">
                         {sortOrder === 'asc' ? '↑' : '↓'}
                       </span>
@@ -338,63 +453,76 @@ function UserPermissionsPage() {
                       <div className="font-medium">
                         {user.name}
                       </div>
+                      <div className="text-xs text-gray-500">
+                        {user.email}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {user.studentId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="truncate max-w-[150px]" title={user.faculty}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'เจ้าหน้าที่' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-green-600 text-white'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="truncate max-w-[150px]" title={`${user.faculty} ${user.major}`}>
                         {user.faculty}
+                        <div className="text-xs text-gray-500">
+                          {user.major}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {user.email}
+                      {user.lastLoginDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.isStaff
-                          ? theme === 'dark' ? 'bg-green-800 text-green-200' : 'bg-green-100 text-green-800'
-                          : theme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-800'
+                      <span className={`font-medium ${
+                        user.isSuspended 
+                          ? theme === 'dark' ? 'text-red-400' : 'text-red-600' 
+                          : theme === 'dark' ? 'text-green-400' : 'text-green-600'
                       }`}>
-                        {user.isStaff ? 'เจ้าหน้าที่' : 'นิสิต'}
+                        {user.isSuspended ? 'ระงับแล้ว' : 'ปกติ'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                      <div className="flex justify-center space-x-2">
-                        {user.isStaff ? (
-                          <button
-                            onClick={() => handleRevoke(user.id)}
-                            className={`px-3 py-1 text-xs font-semibold rounded-md ${
-                              theme === 'dark' 
-                                ? 'bg-red-600 text-white hover:bg-red-700' 
-                                : 'bg-red-600 text-white hover:bg-red-700'
-                            } transition-colors`}
-                          >
-                            ยกเลิก Staff
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleAppoint(user.id)}
-                            className={`px-3 py-1 text-xs font-semibold rounded-md ${
-                              theme === 'dark' 
-                                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            } transition-colors`}
-                          >
-                            แต่งตั้ง Staff
-                          </button>
-                        )}
-                      </div>
+                      {user.isSuspended ? (
+                        <button
+                          onClick={() => handleUnsuspendUser(user.id)}
+                          className={`px-3 py-1 rounded-md ${
+                            theme === 'dark' 
+                              ? 'bg-green-600 hover:bg-green-700' 
+                              : 'bg-green-600 hover:bg-green-700'
+                          } text-white text-xs`}
+                        >
+                          ยกเลิกระงับบัญชี
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleSuspendUser(user.id)}
+                          className={`px-3 py-1 rounded-md ${
+                            theme === 'dark' 
+                              ? 'bg-red-600 hover:bg-red-700' 
+                              : 'bg-red-600 hover:bg-red-700'
+                          } text-white text-xs`}
+                        >
+                          ระงับบัญชี
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-6 py-4 text-center text-sm font-medium"
                   >
-                    ไม่พบผู้ใช้ที่ตรงกับเงื่อนไขการค้นหา
+                    ไม่พบผู้ใช้งานที่ตรงกับเงื่อนไขการค้นหา
                   </td>
                 </tr>
               )}
@@ -480,4 +608,4 @@ function UserPermissionsPage() {
   );
 }
 
-export default UserPermissionsPage;
+export default UserSuspensionPage;

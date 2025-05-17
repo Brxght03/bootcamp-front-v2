@@ -68,24 +68,7 @@ const staffRoutes: RouteObject[] = [
       </RoleBasedRoute>
     ),
   },
-  // หน้ากิจกรรมยอดนิยม
-  {
-    path: '/staff/popular-activities',
-    element: (
-      <RoleBasedRoute allowedRoles={['staff']}>
-        <div>Popular Activities Page - coming soon</div>
-      </RoleBasedRoute>
-    ),
-  },
-  // หน้าผู้เข้าร่วมกิจกรรมมากที่สุด
-  {
-    path: '/staff/top-participants',
-    element: (
-      <RoleBasedRoute allowedRoles={['staff']}>
-        <div>Top Participants Page - coming soon</div>
-      </RoleBasedRoute>
-    ),
-  },
+ 
 ];
 
 export default staffRoutes;
