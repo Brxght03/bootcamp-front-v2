@@ -32,6 +32,14 @@ function UserSuspensionPage() {
   const [filterRole, setFilterRole] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
 
+  // ฟังก์ชันแปลงวันที่จาก dd/MM/yyyy (ปีพุทธศักราช) เป็น Date object
+  const parseThaiDate = (dateStr: string): Date => {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    // แปลงปีพุทธศักราช (เช่น 2568) เป็นคริสต์ศักราช (เช่น 2025)
+    const christianYear = year - 543;
+    return new Date(christianYear, month - 1, day); // month - 1 เพราะ JavaScript เริ่มที่ 0
+  };
+
   useEffect(() => {
     // ข้อมูลตัวอย่าง (ในโปรเจคจริง ควรใช้ API เพื่อดึงข้อมูล)
     const sampleUsers: UserItem[] = [
@@ -248,6 +256,13 @@ function UserSuspensionPage() {
         return sortOrder === 'asc' 
           ? (a.isSuspended === b.isSuspended ? 0 : a.isSuspended ? 1 : -1) 
           : (a.isSuspended === b.isSuspended ? 0 : a.isSuspended ? -1 : 1);
+      } else if (sortField === 'lastLoginDate') {
+        // สำหรับฟิลด์วันที่
+        const dateA = parseThaiDate(a.lastLoginDate);
+        const dateB = parseThaiDate(b.lastLoginDate);
+        return sortOrder === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
       } else {
         // สำหรับฟิลด์อื่นๆ
         const compareA = String(a[sortField]).toLowerCase();

@@ -26,6 +26,14 @@ function ActivitiesPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('');
+  
+  // ฟังก์ชันแปลงวันที่จาก dd/MM/yyyy (ปีพุทธศักราช) เป็น Date object
+  const parseThaiDate = (dateStr: string): Date => {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    // แปลงปีพุทธศักราช (เช่น 2568) เป็นคริสต์ศักราช (เช่น 2025)
+    const christianYear = year - 543;
+    return new Date(christianYear, month - 1, day); // month - 1 เพราะ JavaScript เริ่มที่ 0
+  };
 
   useEffect(() => {
     // ข้อมูลตัวอย่าง (ในโปรเจคจริง ควรใช้ API เพื่อดึงข้อมูล)
@@ -137,17 +145,19 @@ function ActivitiesPage() {
     )
     .sort((a, b) => {
       // เรียงตามฟิลด์ที่เลือก
-      const compareA = a[sortField].toLowerCase();
-      const compareB = b[sortField].toLowerCase();
-      
-      if (compareA < compareB) {
-        return sortOrder === 'asc' ? -1 : 1;
+      let compareA: string | Date = a[sortField];
+      let compareB: string | Date = b[sortField];
+
+      if (sortField === 'startDate' || sortField === 'endDate') {
+        compareA = parseThaiDate(a[sortField]);
+        compareB = parseThaiDate(b[sortField]);
       }
-      if (compareA > compareB) {
-        return sortOrder === 'asc' ? 1 : -1;
-      }
+
+      if (compareA < compareB) return sortOrder === 'asc' ? -1 : 1;
+      if (compareA > compareB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
+
 
   // คำนวณหน้าปัจจุบัน
   const indexOfLastItem = currentPage * itemsPerPage;
