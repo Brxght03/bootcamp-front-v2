@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/UseAuth.hook';
+import { ADMIN_CREDENTIALS } from '../stores/auth.store';
 
 function LoginPage() {
   const [studentId, setStudentId] = useState('');
@@ -8,7 +9,8 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { handleLogin, isAuthenticated } = useAuth();
+  const [loginRole, setLoginRole] = useState<string | null>(null); // เพิ่ม state เก็บ role
+  const { handleLogin, isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
 
   // Hide Navbar on Login page
@@ -22,9 +24,37 @@ function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      redirectBasedOnRole(userRole);
+    }
+  }, [isAuthenticated, userRole, navigate]);
+
+  // ฟังก์ชันนำทางตาม role
+  const redirectBasedOnRole = (role: string | null) => {
+    if (role === 'admin') {
+      navigate('/admin');
+    } else if (role === 'staff') {
+      navigate('/staff-dashboard');
+    } else {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  };
+
+  // ฟังก์ชันที่จะตรวจสอบ role จาก studentId
+  const detectRoleFromStudentId = (id: string): 'admin' | 'staff' | 'student' => {
+    // ตรวจสอบว่าเป็น Admin ที่กำหนดไว้พิเศษหรือไม่
+    if (id === ADMIN_CREDENTIALS.STUDENT_ID && password === ADMIN_CREDENTIALS.PASSWORD) {
+      return 'admin';
+    }
+    
+    // ตรวจสอบตามรูปแบบเดิม
+    if (id.startsWith('1')) {
+      return 'admin';
+    } else if (id.startsWith('2')) {
+      return 'staff';
+    } else {
+      return 'student';
+    }
+  };
 
   const onLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +72,10 @@ function LoginPage() {
     }
 
     try {
+      // ตรวจสอบ role ก่อนเรียก API
+      const detectedRole = detectRoleFromStudentId(studentId);
+      setLoginRole(detectedRole);
+      
       // Call login function from auth hook
       const result = await handleLogin({ studentId, password });
       
@@ -57,6 +91,9 @@ function LoginPage() {
         localStorage.removeItem('rememberStudentId');
       }
 
+      // แสดง Role ที่เข้าสู่ระบบในคอนโซล (สามารถลบออกได้)
+      console.log(`User logged in as: ${detectedRole}`);
+      
       // Navigation will happen automatically due to the isAuthenticated useEffect
     } catch (error) {
       console.error('Login error:', error);
@@ -100,6 +137,12 @@ function LoginPage() {
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {errorMessage}
+            </div>
+          )}
+
+          {loginRole && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              กำลังเข้าสู่ระบบในฐานะ: {loginRole === 'admin' ? 'ผู้ดูแลระบบ' : loginRole === 'staff' ? 'เจ้าหน้าที่' : 'นิสิต'}
             </div>
           )}
 
@@ -201,6 +244,7 @@ function LoginPage() {
             <li>รหัสนิสิตเริ่มต้นด้วย <strong>2</strong> (เช่น 26015001): เข้าระบบเป็นเจ้าหน้าที่</li>
             <li>รหัสนิสิตเริ่มต้นด้วย <strong>1</strong> (เช่น 16015001): เข้าระบบเป็นผู้ดูแลระบบ</li>
             <li>รหัสนิสิตอื่นๆ (เช่น 66015001): เข้าระบบเป็นนิสิต</li>
+            <li><strong>Admin พิเศษ:</strong> รหัสนิสิต = {ADMIN_CREDENTIALS.STUDENT_ID}, รหัสผ่าน = {ADMIN_CREDENTIALS.PASSWORD}</li>
           </ul>
           <p className="text-xs text-blue-600 mt-2">*หมายเหตุ: รหัสผ่านสามารถใส่ค่าใดก็ได้สำหรับการทดสอบ หรือใช้บัญชีที่ลงทะเบียนไว้</p>
         </div>
