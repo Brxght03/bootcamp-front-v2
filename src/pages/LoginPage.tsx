@@ -131,7 +131,7 @@ function LoginPage() {
         
         {/* Login form */}
         <div className="w-full max-w-md p-8 border-2 rounded-lg">
-          <h2 className="text-2xl font-bold text-center mb-2">เข้าสู่ระบบ</h2>
+          <h2 className="text-2xl font-bold text-center text-gray-600 mb-2">เข้าสู่ระบบ</h2>
           <p className="text-center text-gray-600 mb-8">ยินดีต้อนรับกลับมาสู่บัญชีของคุณ</p>
 
           {errorMessage && (
@@ -161,7 +161,7 @@ function LoginPage() {
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 placeholder="กรุณากรอกรหัสนิสิต 8 ตัว"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                 maxLength={8}
               />
             </div>
@@ -180,7 +180,7 @@ function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="กรุณากรอกรหัสผ่าน"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-10"
+                  className="w-full px-3 py-2 text-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 pr-10"
                 />
                 <button 
                   type="button"
