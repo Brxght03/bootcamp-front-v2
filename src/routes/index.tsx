@@ -25,10 +25,6 @@ const NotFoundPage = React.lazy(() => import('../pages/NotFound404.page'));
  */
 const routes: RouteObject[] = [
   // หน้าหลักที่ทุกคนเข้าถึงได้
-  {
-    path: '/',
-    element: <HomePage />,
-  },
   // หน้าล็อกอิน
   {
     path: '/login',
@@ -38,6 +34,15 @@ const routes: RouteObject[] = [
   {
     path: '/register',
     element: <RegisterPage />,
+  },
+  // หน้าแรกของเว็บ ต้องล็อกอินก่อน
+  {
+    path: '/',
+    element: (
+      <RoleBasedRoute allowedRoles={['admin', 'student', 'staff']}>
+        <HomePage />
+      </RoleBasedRoute>
+    ),
   },
   // หน้ากิจกรรมของฉัน - ต้องล็อกอินก่อน และไม่ใช่แอดมิน
   {
