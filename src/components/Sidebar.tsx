@@ -25,7 +25,11 @@ function Sidebar() {
   const [hasProfileImage, setHasProfileImage] = useState(false);
 
   // เปิดปิด sidebar
-const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // ไล่ความเข้มของ effect ตอนเปิด sidebar
+  const [renderOverlay, setRenderOverlay] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
 
   // ฟังก์ชันสำหรับการสลับ theme
   const handleThemeChange = () => {
@@ -48,6 +52,16 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isAdmin = userRole === 'admin';
   const isStaff = userRole === 'staff';
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setRenderOverlay(true);
+      setTimeout(() => setOverlayVisible(true), 10);
+    } else {
+      setOverlayVisible(false);
+      setTimeout(() => setRenderOverlay(false), 300);
+    }
+  }, [isSidebarOpen]);
+
   return (
     <>
       {/* ปุ่ม Hamburger Menu */}
@@ -60,9 +74,10 @@ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
         </svg>
       </button>
 
-      {isSidebarOpen && (
+      {renderOverlay && (
         <div
-          className='fixed inset-0 z-30 bg-black opacity-50'
+          className={`fixed inset-0 z-30 bg-black backdrop-blur-sm transition-opacity duration-300
+          ${overlayVisible ? 'opacity-50' : 'opacity-0'}`}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
