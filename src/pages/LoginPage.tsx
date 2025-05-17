@@ -73,7 +73,35 @@ function LoginPage() {
   };
   
 
- 
+  /*
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!/^\d{8}$/.test(studentId)) {
+      alert('รหัสนิสิตต้องเป็นตัวเลข 8 หลัก');
+      return;
+    }
+  
+    if (!password) {
+      alert('กรุณากรอกรหัสผ่าน');
+      return;
+    }
+  
+    try {
+      const result = await login(studentId, password); // เรียก API จริง
+  
+      if (studentId.startsWith('1')) {
+        navigate('/admin');
+      } else if (studentId.startsWith('2')) {
+        navigate('/staff-dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      alert('เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบข้อมูลอีกครั้ง');
+    }
+  };
+  */
 
   // ฟังก์ชันสลับการแสดง/ซ่อนรหัสผ่าน
   const togglePasswordVisibility = () => {
