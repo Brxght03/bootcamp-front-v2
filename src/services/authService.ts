@@ -1,5 +1,6 @@
 // src/services/authService.ts
 import api from './api';
+import { ADMIN_CREDENTIALS } from '../stores/auth.store';
 
 export interface LoginPayload {
   studentId: string;
@@ -25,6 +26,25 @@ export interface LoginResponse {
 // In a real application, this would call an actual API endpoint
 export const loginApi = async ({ studentId, password }: LoginPayload): Promise<LoginResponse> => {
   try {
+    // ตรวจสอบการเข้าสู่ระบบของ admin พิเศษ
+    if (studentId === ADMIN_CREDENTIALS.STUDENT_ID && password === ADMIN_CREDENTIALS.PASSWORD) {
+      const accessToken = btoa(`${studentId}:admin:${Date.now()}`);
+      
+      return {
+        user: {
+          id: 'admin-special',
+          studentId: studentId,
+          role: 'admin',
+          email: 'admin@example.com',
+          firstName: 'Admin',
+          lastName: 'System'
+        },
+        tokens: {
+          accessToken
+        }
+      };
+    }
+    
     // For development/demonstration purposes
     // This simulates checking a local storage database of registered users
     const storedUsers = localStorage.getItem('registeredUsers');

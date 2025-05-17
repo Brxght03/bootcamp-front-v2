@@ -28,9 +28,16 @@ interface AuthStateProps {
   login: (userData: UserData, token: string) => void;
   logout: () => void;
   checkAuth: () => boolean;
+  hasAccess: (allowedRoles: UserRole[]) => boolean; // เพิ่มฟังก์ชันตรวจสอบสิทธิ์
 }
 
 export const AuthStore = createContext<AuthStateProps | undefined>(undefined);
+
+// กำหนดรหัสนิสิตและรหัสผ่านสำหรับ admin โดยเฉพาะ
+export const ADMIN_CREDENTIALS = {
+  STUDENT_ID: '12345678',
+  PASSWORD: 'admin123'
+};
 
 export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -61,6 +68,12 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return false;
     }
+  };
+
+  // ฟังก์ชันตรวจสอบสิทธิ์การเข้าถึงตาม role
+  const hasAccess = (allowedRoles: UserRole[]): boolean => {
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบหรือไม่ และมี role ที่อนุญาตหรือไม่
+    return isAuthenticated && userRole !== null && allowedRoles.includes(userRole);
   };
 
   useEffect(() => {
@@ -103,7 +116,8 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
       userData,
       login, 
       logout, 
-      checkAuth 
+      checkAuth,
+      hasAccess // เพิ่มฟังก์ชันตรวจสอบสิทธิ์ในค่าที่ส่งออก
     }}>
       {children}
     </AuthStore.Provider>
